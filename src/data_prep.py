@@ -73,7 +73,7 @@ def prepare_default_accounts(
         .last()
     )
     df["resolution_type"] = df[acc_id_col].map(last_status_map)
-    df = df[df["default_date"] == df[date_col]] #Only first default rows
+    df = df[df["default_date"] == df[date_col]].reset_index(drop = True) #Only first default rows
    
     # Resolution cases
     df["resolved"] = df[resolution_date].notna().astype(int)
