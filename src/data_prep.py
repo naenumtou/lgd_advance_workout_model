@@ -8,6 +8,7 @@ warnings.filterwarnings("ignore")
 # Default account preparation
 def prepare_default_accounts(
     df_raw: pd.DataFrame,
+    df_cashflows: pd.DataFrame,
     acc_id_col: str,
     default_col: str,
     default_flag: int,
@@ -29,7 +30,8 @@ def prepare_default_accounts(
         and latest period. The time to resolution is in a monthly basis.
 
     Args:
-        df_raw (pd.DataFrame)       : Input dataframe.
+        df_raw (pd.DataFrame)       : Input transaction data.
+        df_cashflow (pd.DataFrame)  : Input cashflow data.
         acc_id_col (str)            : Primary key.
         default_col (str)           : Default column for modeling.
         default_flag (int)          : Default value for event default identify.
@@ -42,6 +44,7 @@ def prepare_default_accounts(
         pd.DataFrame: DataFrame of default population. 1 row per 1 default account.
 
     Notes:
+        - For on-going collection activities, the resolution date will be based on maximum date found of collection process.
         - For the time to resolution equal to 0, it is capped to 1 since it is better for modeling.
     """
 
@@ -74,14 +77,26 @@ def prepare_default_accounts(
     )
     df["resolution_type"] = df[acc_id_col].map(last_status_map)
     df = df[df["default_date"] == df[date_col]].reset_index(drop = True) #Only first default rows
-   
-    # Resolution cases
-    df["resolved"] = df[resolution_date].notna().astype(int)
 
     # Time to resolution
-    # If resolution cases --> find delta between resolution_date and default_date
-    # If censoring cases --> find delta between latest period and default_date
+    # If resolution normal cases --> find delta month between resolution_date and default_date
+    # If resolution loss cases --> find delta month from maximum of active and collection resolution_date and default_date
+    # If censoring cases --> find delta month between latest period and default_date
     print("[INFO]: Compute time to resolution")
+
+    last_cf = df_cashflows.groupby(acc_id_col)[date_col].max().rename("last_cf_date")
+    df = df.join(last_cf, on = acc_id_col)
+ 
+    is_continue = df["resolution_type"].isin([202, 204, 205])
+    df[resolution_date] = np.where(
+        is_continue,
+        df[[resolution_date, "last_cf_date"]].max(axis = 1), #Find maximum period
+        df[resolution_date]
+
+    )
+
+    # Resolution cases
+    df["resolved"] = df[resolution_date].notna().astype(int)
 
     df["time_to_resolution"] = np.where(
         df["resolved"] == 1,
