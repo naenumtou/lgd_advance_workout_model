@@ -212,6 +212,7 @@ def build_monthly_panel(
     )
     
     # Clean recovery amount that first month of default should not have recovery
+    default_cashflow["amount"] = default_cashflow["amount"].fillna(0) #For month does not have recovery
     default_cashflow["amount"] = np.where(
         default_cashflow["month_since_default"] == 0,
         0,
