@@ -92,7 +92,6 @@ def prepare_default_accounts(
         is_continue,
         df[[resolution_date, "last_cf_date"]].max(axis = 1), #Find maximum period
         df[resolution_date]
-
     )
 
     # Resolution cases
