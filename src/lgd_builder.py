@@ -141,7 +141,7 @@ def fit_resolution_type_model(
 
     Description:
         Using only resolved cases for fitting the multinomial logistic model.
-        The event target is used resolution type (0, 202, 204, 205), The base
+        The event target is used resolution type (0, 202, 204, 205). The base
         features are only time to resolution, EIR and EAD while the FWL Features
         are using MEV(s) but it is an optional.
 
