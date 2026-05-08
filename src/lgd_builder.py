@@ -129,3 +129,47 @@ def fit_survival_model(
     )
 
     return aft
+
+# Classification model for resoluation type
+def fit_resolution_type_model(
+    df: pd.DataFrame,
+    fwl_features: list = None
+) -> tuple[LogisticRegression, LabelEncoder]:
+    
+    """
+    Fitting the multinomial logistic model resolution type.
+
+    Description:
+        Using only resolved cases for fitting the multinomial logistic model.
+        The event target is used resolution type (0, 202, 204, 205), The base
+        features are only time to resolution, EIR and EAD while the FWL Features
+        are using MEV(s) but it is an optional.
+
+    Args:
+        df (pd.DataFrame)   : Input default data.
+        fwl_features (list) : List of MEV(s) that incorrporating into the model. 
+
+    Returns:
+        callable: Model callable object from LogisticRegression().
+        callable: Encoder callable object from LabelEncoder().
+
+    Notes:
+        - If there are additional base features, the values of thoes cannot missing.
+    """
+    
+    # Only resolved cases
+    df_completed = df[df['resolved'] == 1]
+    base_features = ["time_to_resolution", "eir", "ead"]
+    if fwl_features is None:
+        fwl_features = []
+
+    le_type = LabelEncoder()
+    y = le_type.fit_transform(df_completed["resolution_type"])
+    clf = LogisticRegression(
+        solver ='lbfgs',
+        class_weight = "balanced",
+        max_iter = 1000
+    )
+    clf.fit(df_completed[base_features + fwl_features], y)
+
+    return clf, le_type
