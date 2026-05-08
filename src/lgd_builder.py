@@ -5,6 +5,42 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+# Helper function
+def build_default_fwl_data(
+   df_accounts: pd.DataFrame,
+   df_mev: pd.DataFrame,
+   fwl_features: list
+) -> pd.DataFrame:
+    
+    """
+    Create training set for default account with MEV(s) Data.
+
+    Description:
+        Mapping MEV(s) Data at the date of default for FWL Consideration.
+
+    Args:
+        df_accounts (pd.DataFrame)   : Input default data.
+        df_mev (pd.DataFrame)        : Input MEV(s) data.
+        fwl_features (list)          : List of MEV(s) that incorrporating into the model. 
+
+    Returns:
+        pd.DataFrame: Data default account with MEV(s) mapped.
+
+    Notes:
+        - N/A.
+    """
+    
+    mev_data = df_mev[fwl_features].reset_index(names = "default_date")
+    df_train = pd.merge(
+        df_accounts,
+        mev_data[["default_date"] + fwl_features],
+        how = "left",
+        left_on = ["default_date"],
+        right_on = ["default_date"]
+        )
+    
+    return df_train
+
 # Actual LGD (Resolved cases)
 def compute_actual_lgd(
     df_account: pd.DataFrame,
