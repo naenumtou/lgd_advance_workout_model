@@ -153,9 +153,9 @@ def fit_resolution_type_model(
         are using MEV(s) but it is an optional.
 
     Args:
-        df (pd.DataFrame)       : Input default data.
-        df_mev (pd.DataFrame)   : Input MEV(s) data.
-        fwl_features (list)     : List of MEV(s) that incorrporating into the model. 
+        df_accounts (pd.DataFrame)  : Input default data.
+        df_mev (pd.DataFrame)       : Input MEV(s) data.
+        fwl_features (list)         : List of MEV(s) that incorrporating into the model. 
 
     Returns:
         callable: Model callable object from LogisticRegression().
