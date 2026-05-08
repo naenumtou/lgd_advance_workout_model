@@ -30,7 +30,7 @@ def compute_actual_lgd(
         LGD = 1 - PV / EAD
 
     Args:
-        df_raw (pd.DataFrame)       : Input default data.
+        df_account (pd.DataFrame)   : Input default data.
         df_cashflow (pd.DataFrame)  : Input cashflow data.
         acc_id_col (str)            : Primary key.
         resolution_col (str)        : Account status for identify resolution types.
