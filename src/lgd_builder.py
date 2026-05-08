@@ -3,6 +3,10 @@ import numpy as np
 import pandas as pd
 import warnings
 
+from lifelines import WeibullAFTFitter
+from sklearn.preprocessing import LabelEncoder
+from sklearn.linear_model import LogisticRegression
+
 warnings.filterwarnings("ignore")
 
 # Helper function
