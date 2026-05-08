@@ -89,3 +89,43 @@ def compute_actual_lgd(
         print(f"    resolution_type {int(row['resolution_type']):>3} - LGD: {row['lgd'] * 100:.2f}%")
 
     return df.drop("pv", axis = 1)
+
+# Survival model for time to resolution
+def fit_survival_model(
+    df: pd.DataFrame,
+    fwl_features: list = None
+) -> WeibullAFTFitter:
+    
+    """
+    Fitting the Accelerated Failure Time (AFT) Model for time to resolution.
+
+    Description:
+        Using both of resolved cases and non-resolved cases for fitting the model.
+        The event target is used resolved (0, 1) and duration is time to resolution.
+        The base features are only resolved and time to resolution while the FWL Features
+        are using MEV(s) but it is an optional.
+
+    Args:
+        df (pd.DataFrame)   : Input transaction data.
+        fwl_features (list) : List of MEV(s) that incorrporating into the model. 
+
+    Returns:
+        callable: Model callable object from WeibullAFTFitter().
+
+    Notes:
+        - time_to_resolution for non-resolved cases are until latest data period.
+    """
+
+    base_features = ["time_to_resolution", "resolved"]
+    if fwl_features is None:
+        fwl_features = []
+    
+    # AFT Model
+    aft = WeibullAFTFitter()
+    aft.fit(
+        df[base_features + fwl_features],
+        duration_col = "time_to_resolution",
+        event_col = "resolved",
+    )
+
+    return aft
