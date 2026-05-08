@@ -347,3 +347,61 @@ def fit_cf_hazard_model(
     clf.feature_names_ = X_train.columns.tolist()
 
     return clf
+
+# Regression model for cashflow amount recieve
+def fit_cf_amount_models(
+    df_accounts: pd.DataFrame,
+    df_cashflow: pd.DataFrame,
+    df_mev: pd.DataFrame = None,
+    fwl_features: list = None
+) -> dict:
+    
+    """
+    Fitting the regression model for cashflow amount recieve.
+
+    Description:
+        Using only resolved cases for fitting the linear regression model.
+        The event target is used cashflow amount by EAD (Cashflow rate).
+        The base feature is only month since default (after default).
+        For the model fitting, it fits as overall pool level and it has been
+        seperated by resolution type. The FWL Features are using MEV(s) but it is an optional.
+
+    Args:
+        df_accounts (pd.DataFrame)          : Input default data.
+        df_cashflow (pd.DataFrame)          : Input cashflow data.
+        df_mev (pd.DataFrame, optional)     : Input MEV(s) data.
+                                            If None, FWL MEV(s) is not considered.
+        fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
+                                            If None, FWL MEV(s) is not considered.
+
+    Returns:
+        Dictionary: Keys are resolution type. Values are model callable object from smf.ols().
+                    {keys: values} --> {resolution type (str): smf.ols() (callable)}
+
+    Notes:
+        - If number of sample in particular resolution type less than 30, the model will be fitted (Skip).
+    """
+
+    if fwl_features is None:
+        data = build_cashflow_fwl_data(df_accounts, df_cashflow)
+        formula = f"amount_rate ~ month_since_default"
+    else:
+        data = build_cashflow_fwl_data(df_accounts, df_cashflow, df_mev, fwl_features)
+        formula = f"amount_rate ~ month_since_default + " + " + ".join(fwl_features)
+
+    # Only cashflow recieve
+    data = data[data["has_cf"] == 1]
+    data["amount_rate"] = data["amount"] / data["ead"]
+
+    models = {}
+
+    # Pool level
+    models["pooled"] = smf.ols(formula, data = data).fit()
+
+    for rtype in data["resolution_type"].unique():
+        mask = data["resolution_type"] == rtype
+        if mask.sum() < 30: #Minimum sample
+            continue
+        models[rtype] = smf.ols(formula, data = data[mask]).fit()
+
+    return models
