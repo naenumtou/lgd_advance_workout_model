@@ -138,7 +138,8 @@ def fit_survival_model(
 
 # Classification model for resoluation type
 def fit_resolution_type_model(
-    df: pd.DataFrame,
+    df_accounts: pd.DataFrame,
+    df_mev: pd.DataFrame = None,
     fwl_features: list = None
 ) -> tuple[LogisticRegression, LabelEncoder]:
     
@@ -152,8 +153,9 @@ def fit_resolution_type_model(
         are using MEV(s) but it is an optional.
 
     Args:
-        df (pd.DataFrame)   : Input default data.
-        fwl_features (list) : List of MEV(s) that incorrporating into the model. 
+        df (pd.DataFrame)       : Input default data.
+        df_mev (pd.DataFrame)   : Input MEV(s) data.
+        fwl_features (list)     : List of MEV(s) that incorrporating into the model. 
 
     Returns:
         callable: Model callable object from LogisticRegression().
@@ -164,18 +166,26 @@ def fit_resolution_type_model(
     """
     
     # Only resolved cases
-    df_completed = df[df['resolved'] == 1]
-    base_features = ["time_to_resolution", "eir", "ead"]
-    if fwl_features is None:
-        fwl_features = []
+    df_completed = df_accounts[df_accounts['resolved'] == 1]
 
+    # Get label encoder
     le_type = LabelEncoder()
     y = le_type.fit_transform(df_completed["resolution_type"])
+    
+    base_features = ["time_to_resolution", "eir", "ead"]
+    
+    if fwl_features is None:
+        df_train = df_completed[base_features]
+    else:
+        df_tmp = build_default_fwl_data(df_completed, df_mev, fwl_features)
+        df_train = df_tmp[base_features + fwl_features]
+        
+    # Classification model
     clf = LogisticRegression(
-        solver ='lbfgs',
+        solver = "lbfgs",
         class_weight = "balanced",
         max_iter = 1000
     )
-    clf.fit(df_completed[base_features + fwl_features], y)
+    clf.fit(df_train, y)
 
     return clf, le_type
