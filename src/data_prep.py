@@ -138,7 +138,7 @@ def build_monthly_panel(
         function, the monthly panel is created for each default account.
         
     Args:
-        df_raw (pd.DataFrame)       : Input transaction data.
+        df_raw (pd.DataFrame)       : Input default data.
         df_cashflow (pd.DataFrame)  : Input cashflow data.
         acc_id_col (str)            : Primary key.
         date_col (str)              : Date column in data.
