@@ -30,7 +30,7 @@ def compute_actual_lgd(
         LGD = 1 - PV / EAD
 
     Args:
-        df_raw (pd.DataFrame)       : Input transaction data.
+        df_raw (pd.DataFrame)       : Input default data.
         df_cashflow (pd.DataFrame)  : Input cashflow data.
         acc_id_col (str)            : Primary key.
         resolution_col (str)        : Account status for identify resolution types.
@@ -106,7 +106,7 @@ def fit_survival_model(
         are using MEV(s) but it is an optional.
 
     Args:
-        df (pd.DataFrame)   : Input transaction data.
+        df (pd.DataFrame)   : Input default data.
         fwl_features (list) : List of MEV(s) that incorrporating into the model. 
 
     Returns:
