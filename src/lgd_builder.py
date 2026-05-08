@@ -92,7 +92,8 @@ def compute_actual_lgd(
 
 # Survival model for time to resolution
 def fit_survival_model(
-    df: pd.DataFrame,
+    df_accounts: pd.DataFrame,
+    df_mev: pd.DataFrame = None,
     fwl_features: list = None
 ) -> WeibullAFTFitter:
     
@@ -106,8 +107,9 @@ def fit_survival_model(
         are using MEV(s) but it is an optional.
 
     Args:
-        df (pd.DataFrame)   : Input default data.
-        fwl_features (list) : List of MEV(s) that incorrporating into the model. 
+        df_accounts (pd.DataFrame)   : Input default data.
+        df_mev (pd.DataFrame)        : Input MEV(s) data.
+        fwl_features (list)          : List of MEV(s) that incorrporating into the model. 
 
     Returns:
         callable: Model callable object from WeibullAFTFitter().
@@ -115,15 +117,19 @@ def fit_survival_model(
     Notes:
         - time_to_resolution for non-resolved cases are until latest data period.
     """
-
+    
+    df_tmp = df_accounts.copy()
     base_features = ["time_to_resolution", "resolved"]
     if fwl_features is None:
-        fwl_features = []
+        df_train = df_tmp[base_features]
+    else:
+        df_tmp = build_default_fwl_data(df_accounts, df_mev, fwl_features)
+        df_train = df_tmp[base_features + fwl_features]
     
     # AFT Model
     aft = WeibullAFTFitter()
     aft.fit(
-        df[base_features + fwl_features],
+        df_train,
         duration_col = "time_to_resolution",
         event_col = "resolved",
     )
