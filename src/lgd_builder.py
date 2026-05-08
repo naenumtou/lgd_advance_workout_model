@@ -226,3 +226,59 @@ def fit_resolution_type_model(
     clf.fit(df_train, y)
 
     return clf, le_type
+
+# Classification model for cashflow recieve
+def fit_cf_hazard_model(
+    df_accounts: pd.DataFrame,
+    df_cashflow: pd.DataFrame,
+    df_mev: pd.DataFrame = None,
+    fwl_features: list = None,
+) -> LogisticRegression:
+
+    """
+    Fitting the classification model for cashflow recieve.
+
+    Description:
+        Using only resolved cases for fitting the classification logistic model.
+        The event target is used cashflow recieve (0, 1). The base features are
+        month since default (after default), EIR and EAD. For the resolution type,
+        the one-hot encoding is used to transform categorical to column based.     
+        The FWL Features are using MEV(s) but it is an optional.
+
+    Args:
+        df_accounts (pd.DataFrame)   : Input default data.
+        df_cashflow (pd.DataFrame)   : Input cashflow data.
+        df_mev (pd.DataFrame)        : Input MEV(s) data.
+        fwl_features (list)          : List of MEV(s) that incorrporating into the model. 
+
+    Returns:
+        callable: Model callable object from LogisticRegression().
+
+    Notes:
+        - N/A.
+    """
+
+    base_features = ["eir", "ead", "month_since_default"]
+
+    if fwl_features is None:
+        df_train = build_cashflow_fwl_data(df_accounts, df_cashflow)
+        X = df_train[base_features]
+        y_train = df_train["has_cf"]
+    else:
+        df_train = build_cashflow_fwl_data(df_accounts, df_cashflow, df_mev, fwl_features)
+        X = df_train[base_features + fwl_features]
+        y_train = df_train["has_cf"]
+
+    # For resolution type features
+    dummies = pd.get_dummies(
+        df_train["resolution_type"].astype(str),
+        prefix = "rtype",
+        drop_first = True
+    )
+
+    X_train = pd.concat([X, dummies], axis = 1).fillna(0)
+    clf = LogisticRegression(max_iter = 1000)
+    clf.fit(X_train, y_train)
+    clf.feature_names_ = X_train.columns.tolist()
+
+    return clf
