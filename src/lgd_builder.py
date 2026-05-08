@@ -10,6 +10,7 @@ from sklearn.linear_model import LogisticRegression
 warnings.filterwarnings("ignore")
 
 # Helper function
+# Training data for default account with FWL
 def build_default_fwl_data(
    df_accounts: pd.DataFrame,
    df_mev: pd.DataFrame,
@@ -44,7 +45,59 @@ def build_default_fwl_data(
         )
     
     return df_train
+   
+# Training data for cashflow with FWL
+def build_cashflow_fwl_data(
+   df_accounts: pd.DataFrame,
+   df_cashflow: pd.DataFrame,
+   df_mev: pd.DataFrame = None,
+   fwl_features: list = None
+) -> pd.DataFrame:
+    
+    """
+    Create training set for cashflow hazard model and cashflow amount model.
 
+    Description:
+        Using only resolved cases (0, 202, 204, 205) for fitting the models.
+        The event target is binary (0, 1). The 0 means the zero that no cashflow
+        receive in that months while 1 is means there are some cashflow in that
+        month even it is negative due to the cost expense. The base features are
+        only EIR and EAD while the FWL Features are using MEV(s) but it is an optional.
+
+    Args:
+        df_account (pd.DataFrame)   : Input default data.
+        df_cashflow (pd.DataFrame)  : Input cashflow data.
+        df_mev (pd.DataFrame)       : Input MEV(s) data.
+        fwl_features (list)         : List of MEV(s) that incorrporating into the model. 
+
+    Returns:
+        pd.DataFrame: Data monthly panel 1 row per month per account.
+
+    Notes:
+        - The negative cashflow is referred to cost amount that target 'has_cf' == 1.
+    """
+
+    completed_ids = df_accounts.loc[df_accounts["resolved"] == 1, "acc_id"]
+    account_feats = df_accounts[["acc_id", "eir", "ead"]].set_index("acc_id")
+    panel = df_cashflow[df_cashflow["acc_id"].isin(completed_ids)].copy()
+    panel["has_cf"] = (panel["amount"] != 0).astype(int) #Cashflow >, < 0 --> 1, Cashflow = 0 --> 0  
+    df_train = panel.join(account_feats, on = "acc_id")
+
+    if fwl_features is None:
+        return df_train
+    
+    else:
+        mev_data = df_mev[fwl_features].reset_index(names = "as_of_date")
+        df_train = pd.merge(
+            df_train,
+            mev_data[["as_of_date"] + fwl_features],
+            how = "left",
+            left_on = ["as_of_date"],
+            right_on = ["as_of_date"]
+            )
+
+        return df_train
+       
 # Actual LGD (Resolved cases)
 def compute_actual_lgd(
     df_account: pd.DataFrame,
