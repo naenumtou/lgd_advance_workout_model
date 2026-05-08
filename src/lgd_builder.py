@@ -65,10 +65,12 @@ def build_cashflow_fwl_data(
         only EIR and EAD while the FWL Features are using MEV(s) but it is an optional.
 
     Args:
-        df_account (pd.DataFrame)   : Input default data.
-        df_cashflow (pd.DataFrame)  : Input cashflow data.
-        df_mev (pd.DataFrame)       : Input MEV(s) data.
-        fwl_features (list)         : List of MEV(s) that incorrporating into the model. 
+        df_account (pd.DataFrame)            : Input default data.
+        df_cashflow (pd.DataFrame)           : Input cashflow data.
+        df_mev (pd.DataFrame, optional)     : Input MEV(s) data.
+                                            If None, FWL MEV(s) is not considered.
+        fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
+                                            If None, FWL MEV(s) is not considered.
 
     Returns:
         pd.DataFrame: Data monthly panel 1 row per month per account.
@@ -200,9 +202,11 @@ def fit_survival_model(
         are using MEV(s) but it is an optional.
 
     Args:
-        df_accounts (pd.DataFrame)   : Input default data.
-        df_mev (pd.DataFrame)        : Input MEV(s) data.
-        fwl_features (list)          : List of MEV(s) that incorrporating into the model. 
+        df_accounts (pd.DataFrame)          : Input default data.
+        df_mev (pd.DataFrame, optional)     : Input MEV(s) data.
+                                            If None, FWL MEV(s) is not considered.
+        fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
+                                            If None, FWL MEV(s) is not considered.
 
     Returns:
         callable: Model callable object from WeibullAFTFitter().
@@ -246,9 +250,11 @@ def fit_resolution_type_model(
         are using MEV(s) but it is an optional.
 
     Args:
-        df_accounts (pd.DataFrame)  : Input default data.
-        df_mev (pd.DataFrame)       : Input MEV(s) data.
-        fwl_features (list)         : List of MEV(s) that incorrporating into the model. 
+        df_accounts (pd.DataFrame)          : Input default data.
+        df_mev (pd.DataFrame, optional)     : Input MEV(s) data.
+                                            If None, FWL MEV(s) is not considered.
+        fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
+                                            If None, FWL MEV(s) is not considered.
 
     Returns:
         callable: Model callable object from LogisticRegression().
@@ -303,10 +309,12 @@ def fit_cf_hazard_model(
         The FWL Features are using MEV(s) but it is an optional.
 
     Args:
-        df_accounts (pd.DataFrame)   : Input default data.
-        df_cashflow (pd.DataFrame)   : Input cashflow data.
-        df_mev (pd.DataFrame)        : Input MEV(s) data.
-        fwl_features (list)          : List of MEV(s) that incorrporating into the model. 
+        df_accounts (pd.DataFrame)          : Input default data.
+        df_cashflow (pd.DataFrame)          : Input cashflow data.
+        df_mev (pd.DataFrame, optional)     : Input MEV(s) data.
+                                            If None, FWL MEV(s) is not considered.
+        fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
+                                            If None, FWL MEV(s) is not considered.
 
     Returns:
         callable: Model callable object from LogisticRegression().
