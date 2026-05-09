@@ -7,7 +7,7 @@ from lifelines import WeibullAFTFitter
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 
-from src.plot_function import plot_time_resolved
+from src.plot_function import plot_time_resolved, plot_resolved_type
 
 warnings.filterwarnings("ignore")
 
@@ -250,8 +250,9 @@ def fit_survival_model(
 def fit_resolution_type_model(
     df_accounts: pd.DataFrame,
     df_mev: pd.DataFrame = None,
-    fwl_features: list = None
-) -> tuple[LogisticRegression, LabelEncoder]:
+    fwl_features: list = None,
+    outplot: bool = True
+) -> tuple[LogisticRegression, LabelEncoder, None]:
     
     """
     Fitting the multinomial logistic model resolution type.
@@ -268,30 +269,38 @@ def fit_resolution_type_model(
                                             If None, FWL MEV(s) is not considered.
         fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
                                             If None, FWL MEV(s) is not considered.
+        outplot (bool)                      : Option for output plotting.
 
     Returns:
-        callable: Model callable object from LogisticRegression().
-        callable: Encoder callable object from LabelEncoder().
+        callable    : Model callable object from LogisticRegression().
+        callable    : Encoder callable object from LabelEncoder().
+        Figure      : Showing figure from matplotlib.
 
     Notes:
         - If there are additional base features, the values of thoes cannot missing.
         - The class_weight = "balanced" is for equal probability to predict non-resolved cases.
+        - If outplot = Ture --> output parameters will be 3.
+        - If outplot = False --> output parameters will be 2.
     """
+
+    # Base features
+    base_features = ["time_to_resolution", "eir", "ead"]
     
-    # Only resolved cases
-    df_completed = df_accounts[df_accounts['resolved'] == 1]
+    df_completed = df_accounts[df_accounts["resolved"] == 1] #Resolved cases
+    df_incompleted = df_accounts[df_accounts["resolved"] == 0] #Unsolved cases
 
     # Get label encoder
     le_type = LabelEncoder()
     y = le_type.fit_transform(df_completed["resolution_type"])
     
-    base_features = ["time_to_resolution", "eir", "ead"]
-    
     if fwl_features is None:
         df_train = df_completed[base_features]
+        df_test = df_incompleted[base_features]
     else:
-        df_tmp = build_default_fwl_data(df_completed, df_mev, fwl_features)
-        df_train = df_tmp[base_features + fwl_features]
+        df_tmp_completed = build_default_fwl_data(df_completed, df_mev, fwl_features)
+        df_tmp_incompleted = build_default_fwl_data(df_incompleted, df_mev, fwl_features)
+        df_train = df_tmp_completed[base_features + fwl_features]
+        df_test = df_tmp_incompleted[base_features + fwl_features]
         
     # Classification model
     clf = LogisticRegression(
@@ -300,8 +309,14 @@ def fit_resolution_type_model(
         max_iter = 1000
     )
     clf.fit(df_train, y)
-
-    return clf, le_type
+    
+    if outplot is False:
+        return clf, le_type
+    else:
+        proba = clf.predict_proba(df_test)
+        type = le_type.classes_
+        fig = plot_resolved_type(proba, type, "Predict resolotion types for unsolved case")
+        return clf, le_type, fig
 
 # Classification model for cashflow recieve
 def fit_cf_hazard_model(
