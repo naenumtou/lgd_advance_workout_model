@@ -104,7 +104,7 @@ def build_cashflow_fwl_data(
        
 # Actual LGD (Resolved cases)
 def compute_actual_lgd(
-    df_account: pd.DataFrame,
+    df_accounts: pd.DataFrame,
     df_cashflow: pd.DataFrame,
     acc_id_col: str,
     resolution_col: str,
@@ -145,9 +145,9 @@ def compute_actual_lgd(
 
     print("=== Processing ===\n[INFO]: Actual LGD for resolved cases")
 
-    completed_ids = df_account.loc[df_account[resolution_col] == 1, acc_id_col].tolist() #Only resolved cases
+    completed_ids = df_accounts.loc[df_accounts[resolution_col] == 1, acc_id_col].tolist() #Only resolved cases
     panel = df_cashflow[df_cashflow[acc_id_col].isin(completed_ids)]
-    eir = df_account.set_index(acc_id_col)[eir_col].to_dict()
+    eir = df_accounts.set_index(acc_id_col)[eir_col].to_dict()
     panel[eir_col] = panel[acc_id_col].map(eir)
     
     # PV of recovery
@@ -156,7 +156,7 @@ def compute_actual_lgd(
     pv_cahflow = panel.groupby(acc_id_col)["pv"].sum()
 
     # Mapping back to default account
-    df = df_account.copy()
+    df = df_accounts.copy()
     df["pv"] = df[acc_id_col].map(pv_cahflow)
 
     # Compute actual LGD by discounting cashflow
