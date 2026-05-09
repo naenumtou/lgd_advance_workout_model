@@ -88,3 +88,40 @@ def plot_recov_type(
     plt.tight_layout()
 
     return plt.show()
+
+# Plot time to resolved
+def plot_time_resolved(
+    actual: pd.DataFrame,
+    predict: pd.DataFrame,
+    title: str
+) -> None:
+    
+    """
+    Plot time to resolved.
+
+    Description:
+        Plot time to resolved for unsolved case.
+
+    Args:
+        actual (pd.DataFrame)   : DataFrame of actual time to resolution of unsolved case.
+        predict (pd.DataFrame)  : DataFrame of predict time to resolution of unsolved case.
+        title (str)             : Name of the plot
+
+    Returns:
+        Figure: Showing figure from matplotlib.
+
+    Notes:
+        - N/A.
+    """
+
+    fig, ax = plt.subplots(figsize = (10, 6))
+    ax.hist(actual, bins = 50, alpha = 0.5, label = "Unsolved", density = True)
+    ax.hist(predict, bins = 50, alpha = 0.5, label = "Prediction", density = True)
+    ax.set_yticklabels([f"{y * 100:.2f}%" for y in ax.get_yticks()])
+    ax.set_xlabel("Time to resolution")
+    ax.set_ylabel("Density")
+    ax.set_title(title)
+    ax.legend(frameon = True, facecolor = 'white', loc = "upper right")
+    plt.tight_layout()
+
+    return fig
