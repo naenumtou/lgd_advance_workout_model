@@ -12,9 +12,9 @@ warnings.filterwarnings("ignore")
 # Helper function
 # Training data for default account with FWL
 def build_default_fwl_data(
-   df_accounts: pd.DataFrame,
-   df_mev: pd.DataFrame,
-   fwl_features: list
+    df_accounts: pd.DataFrame,
+    df_mev: pd.DataFrame,
+    fwl_features: list
 ) -> pd.DataFrame:
     
     """
@@ -48,10 +48,10 @@ def build_default_fwl_data(
    
 # Training data for cashflow with FWL
 def build_cashflow_fwl_data(
-   df_accounts: pd.DataFrame,
-   df_cashflow: pd.DataFrame,
-   df_mev: pd.DataFrame = None,
-   fwl_features: list = None
+    df_accounts: pd.DataFrame,
+    df_cashflow: pd.DataFrame,
+    df_mev: pd.DataFrame = None,
+    fwl_features: list = None
 ) -> pd.DataFrame:
     
     """
@@ -189,8 +189,9 @@ def compute_actual_lgd(
 def fit_survival_model(
     df_accounts: pd.DataFrame,
     df_mev: pd.DataFrame = None,
-    fwl_features: list = None
-) -> WeibullAFTFitter:
+    fwl_features: list = None,
+    outplot: bool = True
+) -> tuple[WeibullAFTFitter, None]:
     
     """
     Fitting the Accelerated Failure Time (AFT) Model for time to resolution.
@@ -207,16 +208,18 @@ def fit_survival_model(
                                             If None, FWL MEV(s) is not considered.
         fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
                                             If None, FWL MEV(s) is not considered.
+        outplot (bool)                      : Option for output plotting.
 
     Returns:
-        callable: Model callable object from WeibullAFTFitter().
+        callable   : Model callable object from WeibullAFTFitter().
+        Figure     : Showing figure from matplotlib.
 
     Notes:
         - time_to_resolution for non-resolved cases are until latest data period.
     """
     
     df_tmp = df_accounts.copy()
-    base_features = ["time_to_resolution", "resolved"]
+    base_features = ["ead", "eir", "time_to_resolution", "resolved"]
     if fwl_features is None:
         df_train = df_tmp[base_features]
     else:
@@ -230,8 +233,14 @@ def fit_survival_model(
         duration_col = "time_to_resolution",
         event_col = "resolved",
     )
-
-    return aft
+   
+    if outplot is False:
+       return aft
+    else:
+       unsolved = df_train.loc[df_train["resolved"] == 0, "time_to_resolution"]
+       pred = aft.predict_median(df_train[df_train["resolved"] == 0])
+       fig = plot_time_resolved(unsolved, pred, "Median time to resolved for unsolved case")
+       return aft, fig
 
 # Classification model for resoluation type
 def fit_resolution_type_model(
