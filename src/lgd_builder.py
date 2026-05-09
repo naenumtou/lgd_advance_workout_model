@@ -324,7 +324,8 @@ def fit_cf_hazard_model(
     df_cashflow: pd.DataFrame,
     df_mev: pd.DataFrame = None,
     fwl_features: list = None,
-) -> LogisticRegression:
+    outplot: bool = True
+) -> tuple[LogisticRegression, None]:
 
     """
     Fitting the classification model for cashflow recieve.
@@ -343,14 +344,17 @@ def fit_cf_hazard_model(
                                             If None, FWL MEV(s) is not considered.
         fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
                                             If None, FWL MEV(s) is not considered.
-
+        outplot (bool)                      : Option for output plotting.
+        
     Returns:
-        callable: Model callable object from LogisticRegression().
-
+        callable    : Model callable object from LogisticRegression().
+        Figure      : Showing figure from matplotlib.
+        
     Notes:
-        - N/A.
+        - If outplot = Ture --> output parameters will be 2.
+        - If outplot = False --> output parameters will be 1.
     """
-
+    # Base features
     base_features = ["eir", "ead", "month_since_default"]
 
     if fwl_features is None:
@@ -372,9 +376,32 @@ def fit_cf_hazard_model(
     X_train = pd.concat([X, dummies], axis = 1).fillna(0)
     clf = LogisticRegression(max_iter = 1000)
     clf.fit(X_train, y_train)
-    clf.feature_names_ = X_train.columns.tolist()
+    
+    if outplot is False:
+        return clf
+    else:
+        df_plot = pd.DataFrame(
+            {
+                "month_since_default": X_train["month_since_default"],
+                "actual": y_train,
+                "proba": clf.predict_proba(X_train)[:, 1]
+            }
+        )
 
-    return clf
+        df_plot["month_bin"] = pd.cut(df_plot["month_since_default"], bins = 20)
+        summary = (
+            df_plot
+            .groupby("month_bin", observed = True)
+            .agg(
+                month_mid = ("month_since_default", "mean"),
+                count = ("month_since_default", "size"),
+                mean_proba = ("proba", "mean")
+            )
+            .reset_index(drop = True)
+        )
+        fig = plot_pred_cash_recieve(summary, "Mean predicted probability cashflow recieve")
+        
+        return clf, fig
 
 # Regression model for cashflow amount recieve
 def fit_cf_amount_models(
