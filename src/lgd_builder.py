@@ -199,10 +199,10 @@ def fit_survival_model(
     Fitting the Accelerated Failure Time (AFT) Model for time to resolution.
 
     Description:
-        Using both of resolved cases and non-resolved cases for fitting the model.
+        Using both of resolved cases and unsolved cases for fitting the model.
         The event target is used resolved (0, 1) and duration is time to resolution.
-        The base features are only resolved and time to resolution while the FWL Features
-        are using MEV(s) but it is an optional.
+        The base features are only EAD and EIR while the FWL Features are using MEV(s)
+        but it is an optional.
 
     Args:
         df_accounts (pd.DataFrame)          : Input default data.
