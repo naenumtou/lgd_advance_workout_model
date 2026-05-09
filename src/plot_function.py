@@ -229,7 +229,11 @@ def plot_pred_cash_amount(
 
     fig, ax = plt.subplots(figsize = (10, 6))
     for k, g in predict.groupby("model"):
-        ax.plot(g["month_since_default"], g["pred"], label = f" Resolution type {k}",)
+        g_mean = g.groupby(
+            "month_since_default",
+            as_index = False
+        )["pred"].mean()
+        ax.plot(g_mean["month_since_default"], g_mean["pred"], label = f" Resolution type {k}",)
     ax.set_yticklabels([f"{y * 100:.2f}%" for y in ax.get_yticks()])
     ax.set_xlabel("Month since default")
     ax.set_ylabel("Cashflow amount rate")
