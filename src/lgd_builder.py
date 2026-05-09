@@ -7,7 +7,7 @@ from lifelines import WeibullAFTFitter
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 
-from src.plot_function import plot_time_resolved, plot_pred_res_type
+from src.plot_function import plot_time_resolved, plot_pred_res_type, plot_pred_cash_recieve
 
 warnings.filterwarnings("ignore")
 
