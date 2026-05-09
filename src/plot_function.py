@@ -1,7 +1,6 @@
 
 import pandas as pd
 import numpy as np
-import re
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
@@ -202,5 +201,40 @@ def plot_pred_cash_recieve(
     ax.set_ylabel("Mean predicted probability")
     fig.suptitle(title)
     fig.tight_layout()
+
+    return fig
+
+# Plot prediction cashflow recieve amount
+def plot_pred_cash_amount(
+    predict: pd.DataFrame,
+    title: str
+) -> None:
+    
+    """
+    Plot prediction cashflow recieve amount.
+
+    Description:
+        Plot prediction cashflow recieve amount on training set.
+
+    Args:
+        predict (pd.DataFrame)  : DataFrame of summary of mean cashflow recieve amount.
+        title (str)             : Name of the plot.
+
+    Returns:
+        Figure: Showing figure from matplotlib.
+
+    Notes:
+        - N/A.
+    """
+
+    fig, ax = plt.subplots(figsize = (10, 6))
+    for k, g in predict.groupby("model"):
+        ax.plot(g["month_since_default"], g["pred"], label = f" Resolution type {k}",)
+    ax.set_yticklabels([f"{y * 100:.2f}%" for y in ax.get_yticks()])
+    ax.set_xlabel("Month since default")
+    ax.set_ylabel("Cashflow amount rate")
+    ax.set_title(title)
+    ax.legend(frameon = True, facecolor = 'white', loc = "upper right")
+    plt.tight_layout()
 
     return fig
