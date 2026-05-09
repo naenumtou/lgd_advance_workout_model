@@ -218,6 +218,8 @@ def fit_survival_model(
 
     Notes:
         - time_to_resolution for non-resolved cases are until latest data period.
+        - If outplot = Ture --> output parameters will be 2.
+        - If outplot = False --> output parameters will be 1.
     """
     
     df_tmp = df_accounts.copy()
