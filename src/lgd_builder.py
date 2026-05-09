@@ -223,7 +223,7 @@ def fit_survival_model(
     """
     
     df_tmp = df_accounts.copy()
-    base_features = ["ead", "eir", "time_to_resolution", "resolved"]
+    base_features = ["eir", "ead", "time_to_resolution", "resolved"]
     if fwl_features is None:
         df_train = df_tmp[base_features]
     else:
@@ -284,7 +284,7 @@ def fit_resolution_type_model(
     """
 
     # Base features
-    base_features = ["time_to_resolution", "eir", "ead"]
+    base_features = ["eir", "ead", "time_to_resolution"]
     
     df_completed = df_accounts[df_accounts["resolved"] == 1] #Resolved cases
     df_incompleted = df_accounts[df_accounts["resolved"] == 0] #Unsolved cases
