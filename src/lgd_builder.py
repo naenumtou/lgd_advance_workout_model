@@ -7,6 +7,8 @@ from lifelines import WeibullAFTFitter
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 
+from src.plot_function import plot_time_resolved
+
 warnings.filterwarnings("ignore")
 
 # Helper function
