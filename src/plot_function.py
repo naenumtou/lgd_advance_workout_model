@@ -166,3 +166,41 @@ def plot_pred_res_type(
     plt.tight_layout()
 
     return fig
+
+# Plot probability of cashflow recieve
+def plot_pred_cash_recieve(
+    predict: pd.DataFrame,
+    title: str
+) -> None:
+    
+    """
+    Plot probability of cashflow recieve.
+
+    Description:
+        Plot probability of cashflow recieve on training set.
+
+    Args:
+        predict (pd.DataFrame)  : DataFrame of summary of mean probability.
+        title (str)             : Name of the plot.
+
+    Returns:
+        Figure: Showing figure from matplotlib.
+
+    Notes:
+        - N/A.
+    """
+
+    fig, ax = plt.subplots(figsize = (10, 6))
+    ax.plot(
+        predict["month_mid"],
+        predict["mean_proba"],
+        marker = "o",
+        color = "tab:blue",
+    )
+    ax.set_yticklabels([f"{y * 100:.2f}%" for y in ax.get_yticks()])
+    ax.set_xlabel("Month since default")
+    ax.set_ylabel("Mean predicted probability")
+    fig.suptitle(title)
+    fig.tight_layout()
+
+    return fig
