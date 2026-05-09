@@ -105,7 +105,7 @@ def plot_time_resolved(
     Args:
         actual (pd.Series)   : DataFrame of actual time to resolution of unsolved case.
         predict (pd.Series)  : DataFrame of predict time to resolution of unsolved case.
-        title (str)          : Name of the plot
+        title (str)          : Name of the plot.
 
     Returns:
         Figure: Showing figure from matplotlib.
@@ -119,6 +119,47 @@ def plot_time_resolved(
     ax.hist(predict, bins = 50, alpha = 0.5, label = "Prediction", density = True)
     ax.set_yticklabels([f"{y * 100:.2f}%" for y in ax.get_yticks()])
     ax.set_xlabel("Time to resolution")
+    ax.set_ylabel("Density")
+    ax.set_title(title)
+    ax.legend(frameon = True, facecolor = 'white', loc = "upper right")
+    plt.tight_layout()
+
+    return fig
+
+# Plot resolution type prediction
+def plot_pred_res_type(
+    predict: np.ndarray,
+    type: np.ndarray,
+    title: str
+) -> None:
+    
+    """
+    Plot predict resolution type.
+
+    Description:
+        Plot predict resolution type for unsolved case.
+
+    Args:
+        predict (np.ndarray) : Predict probability of each resolution case.
+        type (np.ndarray)    : Type of resolution case label.
+        title (str)          : Name of the plot.
+
+    Returns:
+        Figure: Showing figure from matplotlib.
+
+    Notes:
+        - N/A.
+    """
+
+    fig, ax = plt.subplots(figsize = (10, 6))
+    for i, typ in enumerate(type):
+        ax.hist(
+            predict[:, i], bins = 50, alpha = 0.5,
+            label = f"Resolved type {typ}", density = True
+        )
+    ax.set_xticklabels([f"{x * 100:.2f}%" for x in ax.get_xticks()])
+    ax.set_yticklabels([f"{int(y):.0f}" for y in ax.get_yticks()])
+    ax.set_xlabel("Predicted probability")
     ax.set_ylabel("Density")
     ax.set_title(title)
     ax.legend(frameon = True, facecolor = 'white', loc = "upper right")
