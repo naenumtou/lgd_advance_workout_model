@@ -7,7 +7,7 @@ from lifelines import WeibullAFTFitter
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 
-from src.plot_function import plot_time_resolved, plot_resolved_type
+from src.plot_function import plot_time_resolved, plot_pred_res_type
 
 warnings.filterwarnings("ignore")
 
@@ -315,7 +315,7 @@ def fit_resolution_type_model(
     else:
         proba = clf.predict_proba(df_test)
         type = le_type.classes_
-        fig = plot_resolved_type(proba, type, "Predict resolotion types for unsolved case")
+        fig = plot_pred_res_type(proba, type, "Predict resolotion types for unsolved case")
         return clf, le_type, fig
 
 # Classification model for cashflow recieve
