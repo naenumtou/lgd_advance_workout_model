@@ -315,7 +315,7 @@ def fit_resolution_type_model(
     else:
         proba = clf.predict_proba(df_test)
         type = le_type.classes_
-        fig = plot_pred_res_type(proba, type, "Predict resolotion types for unsolved case")
+        fig = plot_pred_res_type(proba, type, "Predict resolution types for unsolved case")
         return clf, le_type, fig
 
 # Classification model for cashflow recieve
