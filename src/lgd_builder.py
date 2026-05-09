@@ -456,9 +456,6 @@ def fit_cf_amount_models(
 
     models = {}
 
-    # Pool level
-    models["pooled"] = smf.ols(formula, data = data).fit()
-
     for rtype in data["resolution_type"].unique():
         mask = data["resolution_type"] == rtype
         if mask.sum() < 30: #Minimum sample
