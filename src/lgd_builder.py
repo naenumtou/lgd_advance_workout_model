@@ -376,6 +376,7 @@ def fit_cf_hazard_model(
     X_train = pd.concat([X, dummies], axis = 1).fillna(0)
     clf = LogisticRegression(max_iter = 1000)
     clf.fit(X_train, y_train)
+    clf.feature_names_ = X_train.columns.tolist() #Add features of training set
     
     if outplot is False:
         return clf
