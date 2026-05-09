@@ -7,7 +7,7 @@ from lifelines import WeibullAFTFitter
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 
-from src.plot_function import plot_time_resolved, plot_pred_res_type, plot_pred_cash_recieve
+from src.plot_function import plot_time_resolved, plot_pred_res_type, plot_pred_cash_recieve, plot_pred_cash_amount
 
 warnings.filterwarnings("ignore")
 
@@ -408,7 +408,8 @@ def fit_cf_amount_models(
     df_accounts: pd.DataFrame,
     df_cashflow: pd.DataFrame,
     df_mev: pd.DataFrame = None,
-    fwl_features: list = None
+    fwl_features: list = None,
+    outplot: bool = True
 ) -> dict:
     
     """
@@ -428,13 +429,17 @@ def fit_cf_amount_models(
                                             If None, FWL MEV(s) is not considered.
         fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
                                             If None, FWL MEV(s) is not considered.
-
+        outplot (bool)                      : Option for output plotting.
+        
     Returns:
-        Dictionary: Keys are resolution type. Values are model callable object from smf.ols().
-                    {keys: values} --> {resolution type (str): smf.ols() (callable)}
-
+        Dictionary    : Keys are resolution type. Values are model callable object from smf.ols().
+                        {keys: values} --> {resolution type (str): smf.ols() (callable)}
+        Figure        : Showing figure from matplotlib.
+        
     Notes:
         - If number of sample in particular resolution type less than 30, the model will be fitted (Skip).
+        - If outplot = Ture --> output parameters will be 2.
+        - If outplot = False --> output parameters will be 1.
     """
 
     if fwl_features is None:
@@ -458,5 +463,23 @@ def fit_cf_amount_models(
         if mask.sum() < 30: #Minimum sample
             continue
         models[rtype] = smf.ols(formula, data = data[mask]).fit()
+    
+    if outplot is False:
+        return models
+    else:
+        results = []
+        for key, model in models.items():
+            msd = model.model.exog[:, 1]
+            pred = model.predict()
+            df_tmp = pd.DataFrame({
+                "model": key,
+                "month_since_default": msd,
+                "pred": pred
+            })
 
-    return models
+            results.append(df_tmp)
+
+        df_plot = pd.concat(results, ignore_index = True)
+        fig = plot_pred_cash_amount(df_plot, "Predicted cashflow recieve amount rate")
+
+        return models, fig
