@@ -91,8 +91,8 @@ def plot_recov_type(
 
 # Plot time to resolved
 def plot_time_resolved(
-    actual: pd.DataFrame,
-    predict: pd.DataFrame,
+    actual: pd.Series,
+    predict: pd.Series,
     title: str
 ) -> None:
     
@@ -103,9 +103,9 @@ def plot_time_resolved(
         Plot time to resolved for unsolved case.
 
     Args:
-        actual (pd.DataFrame)   : DataFrame of actual time to resolution of unsolved case.
-        predict (pd.DataFrame)  : DataFrame of predict time to resolution of unsolved case.
-        title (str)             : Name of the plot
+        actual (pd.Series)   : DataFrame of actual time to resolution of unsolved case.
+        predict (pd.Series)  : DataFrame of predict time to resolution of unsolved case.
+        title (str)          : Name of the plot
 
     Returns:
         Figure: Showing figure from matplotlib.
