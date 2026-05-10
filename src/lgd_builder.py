@@ -421,7 +421,8 @@ def fit_cf_amount_models(
         The event target is used cashflow amount by EAD (Cashflow rate).
         The base feature is only month since default (after default).
         For the model fitting, it fits as overall pool level and it has been
-        seperated by resolution type. The FWL Features are using MEV(s) but it is an optional.
+        seperated by resolution type. The FWL Features are using MEV(s) but
+        it is an optional.
 
     Args:
         df_accounts (pd.DataFrame)          : Input default data.
@@ -481,3 +482,142 @@ def fit_cf_amount_models(
         fig = plot_pred_cash_amount(df_plot, "Predicted cashflow recieve amount rate")
 
         return models, fig
+
+# Data for default unsolved account with FWL
+def build_unsolved_default_fwl_data(
+    df_accounts: pd.DataFrame,
+    aft: WeibullAFTFitter,
+    clf_type: LogisticRegression,
+    le_type: LabelEncoder,
+    cf_hazard_model: LogisticRegression,
+    cf_amount_models: dict,
+    df_mev: pd.DataFrame = None,
+    fwl_features: list = None,
+) -> pd.DataFrame:
+    
+    """
+    Building the data for unsolved cases.
+
+    Description:
+        Features preparation for unsolved cases to fit the pre-trained model.
+        The data table contains model features that co-responding to the model.
+
+    Args:
+        df_accounts (pd.DataFrame)              : Input default data.
+        aft (WeibullAFTFitter)                  : Time to resolved pre-trained model.
+        clf_type (LogisticRegression)           : Resolution type pre-trained model.
+        le_type (LabelEncoder)                  : Label encoder for target in resolution type pre-trained model.
+        cf_hazard_model (LogisticRegression)    : Cashflow recieve pre-trained model.
+        cf_amount_models (dict)                 : Dictionary cashflow amount model. Keys are resolution type.
+                                                Values are model callable object from smf.ols().
+                                                {keys: values} --> {resolution type (str): smf.ols() (callable)}
+        df_mev (pd.DataFrame, optional)         : Input MEV(s) data.
+                                                If None, FWL MEV(s) is not considered.
+        fwl_features (list, optional)           : List of MEV(s) that incorrporating into the model.
+                                                If None, FWL MEV(s) is not considered.
+
+    Returns:
+        pd.DataFrame: Data cashflow table of unsolved cases. The table contains expect time to resolved,
+                    expect resolution type, probability of cashflow recieve, predicted cashflow amount rate
+                    per resolution type.
+
+    Notes:
+        - N/A.
+    """
+    
+    # Features of pre-trained model for prediction
+    aft_idx = ["eir", "ead", "time_to_resolution", "resolved"] #AFT Model features
+    clf_idx = ["eir", "ead", "time_to_resolution"] #CLF Model features 
+    cf_haz_idx = ["eir", "ead", "month_since_default"] #Cashflow hazard model features
+    rtype_cols = [c for c in cf_hazard_model.feature_names_ if c.startswith("rtype")] #Cashflow hazard model resolution features
+    cf_amt_idx = ["month_since_default"] #Cashflow amount model features
+
+    # Unsolved cases (Account level)
+    df_unsolved = df_accounts[df_accounts["resolved"] == 0]
+    
+    if fwl_features is None:
+        # Predict time to resolution
+        df_unsolved["exp_time_to_resolution"] = aft.predict_median(df_unsolved[aft_idx]).astype(int)
+
+        # Predict type of resolution (prob)
+        type_proba_df = pd.DataFrame(
+            clf_type.predict_proba(df_unsolved[clf_idx]),
+            columns = le_type.classes_,
+            index = df_unsolved["acc_id"]
+        ).reset_index()
+
+    else:
+        # Mapping with MEV(s)
+        df_unsolved = build_default_fwl_data(df_unsolved, df_mev, fwl_features)
+        
+        # Predict time to resolution
+        df_unsolved["exp_time_to_resolution"] = aft.predict_median(df_unsolved[aft_idx + fwl_features]).astype(int)
+        
+        # Predict type of resolution (prob)
+        type_proba_df = pd.DataFrame(
+            clf_type.predict_proba(df_unsolved[clf_idx + fwl_features]),
+            columns = le_type.classes_,
+            index = df_unsolved["acc_id"]
+        ).reset_index()
+        
+    # Create unsolved cases cashflow based on expected time to resolve (Monthly level)
+    n_rep = df_unsolved["exp_time_to_resolution"] + 1 #For repeat rows
+       
+    if fwl_features is None:
+        df_cf_haz = df_unsolved.loc[
+            df_unsolved.index.repeat(n_rep)
+        ].copy()
+        df_cf_haz["month_since_default"] = df_cf_haz.groupby(level = 0).cumcount() #Start at 0
+
+        # Create datetime range equal to "month_since_default"
+        df_cf_haz["as_of_date"] = (
+            pd.to_datetime(df_cf_haz["default_date"])
+            + df_cf_haz["month_since_default"].apply(lambda x: pd.DateOffset(months = x))
+            + pd.offsets.MonthEnd(0)
+        )
+        df_cf_haz["as_of_date"] = pd.to_datetime(df_cf_haz["as_of_date"])
+
+        df_cf_haz = df_cf_haz.reset_index(drop = True)
+        df_cf_haz[rtype_cols] = False #Pre-trained only resolved cases --> unsolved cases will be False
+        
+        # Predict probability of cashflow recieve
+        df_cf_haz["p_cf"] = cf_hazard_model.predict_proba(df_cf_haz[cf_haz_idx + rtype_cols])[:, 1]
+        
+        # Predict cashflow amount recieve rate by resolution type model
+        for tpy, model in cf_amount_models.items():
+            df_cf_haz[f"{tpy}_cf_rate"] = model.predict(df_cf_haz[cf_amt_idx])
+   
+    else:
+        # Drop mapped MEV(s)
+        df_cf_haz = df_unsolved.drop(fwl_features, axis = 1).loc[
+            df_unsolved.index.repeat(n_rep)
+        ].copy()
+        df_cf_haz["month_since_default"] = df_cf_haz.groupby(level = 0).cumcount() #Start at 0 
+
+        # Create datetime range equal to "month_since_default" for MEV(s) mapping
+        df_cf_haz["as_of_date"] = (
+            pd.to_datetime(df_cf_haz["default_date"])
+            + df_cf_haz["month_since_default"].apply(lambda x: pd.DateOffset(months = x))
+            + pd.offsets.MonthEnd(0)
+        )
+        df_cf_haz["as_of_date"] = pd.to_datetime(df_cf_haz["as_of_date"])
+           
+        # Mapping with MEV(s)
+        mev_data = df_mev[fwl_features].reset_index(names = "as_of_date")
+        df_cf_haz = pd.merge(
+            df_cf_haz,
+            mev_data[["as_of_date"] + fwl_features],
+            how = "left",
+            left_on = ["as_of_date"],
+            right_on = ["as_of_date"]
+            ).reset_index(drop = True)
+        df_cf_haz[rtype_cols] = False #Pre-trained only resolved cases --> unsolved cases will be False
+        
+        # Predict probability of cashflow recieve
+        df_cf_haz["p_cf"] = cf_hazard_model.predict_proba(df_cf_haz[cf_haz_idx + fwl_features + rtype_cols])[:, 1]
+        
+        # Predict cashflow amount recieve rate by resolution type model
+        for tpy, model in cf_amount_models.items():
+            df_cf_haz[f"{tpy}_cf_rate"] = model.predict(df_cf_haz[cf_amt_idx + fwl_features])
+        
+    return df_cf_haz, type_proba_df
