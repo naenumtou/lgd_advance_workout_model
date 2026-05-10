@@ -67,8 +67,8 @@ def build_cashflow_fwl_data(
         only EIR and EAD while the FWL Features are using MEV(s) but it is an optional.
 
     Args:
-        df_account (pd.DataFrame)            : Input default data.
-        df_cashflow (pd.DataFrame)           : Input cashflow data.
+        df_account (pd.DataFrame)           : Input default data.
+        df_cashflow (pd.DataFrame)          : Input cashflow data.
         df_mev (pd.DataFrame, optional)     : Input MEV(s) data.
                                             If None, FWL MEV(s) is not considered.
         fwl_features (list, optional)       : List of MEV(s) that incorrporating into the model.
