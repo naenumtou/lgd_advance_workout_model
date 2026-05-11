@@ -533,7 +533,7 @@ def build_unsolved_default_fwl_data(
     clf_idx = ["eir", "ead", "time_to_resolution"] #CLF Model features 
     cf_haz_idx = ["eir", "ead", "month_since_default"] #Cashflow hazard model features
     rtype_cols = [c for c in cf_hazard_model.feature_names_ if c.startswith("rtype")] #Cashflow hazard model resolution features
-    cf_amt_idx = ["month_since_default"] #Cashflow amount model features
+    cf_amt_idx = ["log_month_since_default"] #Cashflow amount model features
 
     # Unsolved cases (Account level)
     df_unsolved = df_accounts[df_accounts["resolved"] == 0]
@@ -586,10 +586,22 @@ def build_unsolved_default_fwl_data(
         # Predict probability of cashflow recieve
         df_cf_haz["p_cf"] = cf_hazard_model.predict_proba(df_cf_haz[cf_haz_idx + rtype_cols])[:, 1]
         
+        # Create log of month since default
+        df_cf_haz["log_month_since_default"] = np.where(
+            df_cf_haz["month_since_default"] == 0,
+            np.log(df_cf_haz["month_since_default"] + 1e-6),
+            np.log(df_cf_haz["month_since_default"])
+        )
+        
         # Predict cashflow amount recieve rate by resolution type model
         for tpy, model in cf_amount_models.items():
-            df_cf_haz[f"{tpy}_cf_rate"] = model.predict(df_cf_haz[cf_amt_idx])
-   
+            df_cf_haz[f"{tpy}_cf_rate"] = np.exp(model.predict(df_cf_haz[cf_amt_idx]))
+            df_cf_haz[f"{tpy}_cf_rate"] = np.where(
+                df_cf_haz["month_since_default"] == 0,
+                0,
+                df_cf_haz[f"{tpy}_cf_rate"]
+            ) #Month since default at 0 --> do not calculate recovery since it is default date
+            
     else:
         # Drop mapped MEV(s)
         df_cf_haz = df_unsolved.drop(fwl_features, axis = 1).loc[
@@ -619,8 +631,20 @@ def build_unsolved_default_fwl_data(
         # Predict probability of cashflow recieve
         df_cf_haz["p_cf"] = cf_hazard_model.predict_proba(df_cf_haz[cf_haz_idx + fwl_features + rtype_cols])[:, 1]
         
+        # Create log of month since default
+        df_cf_haz["log_month_since_default"] = np.where(
+            df_cf_haz["month_since_default"] == 0,
+            np.log(df_cf_haz["month_since_default"] + 1e-6),
+            np.log(df_cf_haz["month_since_default"])
+        )
+        
         # Predict cashflow amount recieve rate by resolution type model
         for tpy, model in cf_amount_models.items():
-            df_cf_haz[f"{tpy}_cf_rate"] = model.predict(df_cf_haz[cf_amt_idx + fwl_features])
-        
+            df_cf_haz[f"{tpy}_cf_rate"] = np.exp(model.predict(df_cf_haz[cf_amt_idx + fwl_features]))
+            df_cf_haz[f"{tpy}_cf_rate"] = np.where(
+                df_cf_haz["month_since_default"] == 0,
+                0,
+                df_cf_haz[f"{tpy}_cf_rate"]
+            ) #Month since default at 0 --> do not calculate recovery since it is default date
+            
     return df_cf_haz, type_proba_df
