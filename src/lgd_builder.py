@@ -446,14 +446,16 @@ def fit_cf_amount_models(
 
     if fwl_features is None:
         data = build_cashflow_fwl_data(df_accounts, df_cashflow)
-        formula = f"amount_rate ~ month_since_default"
+        formula = f"log_amount_rate ~ log_month_since_default"
     else:
         data = build_cashflow_fwl_data(df_accounts, df_cashflow, df_mev, fwl_features)
-        formula = f"amount_rate ~ month_since_default + " + " + ".join(fwl_features)
+        formula = f"log_amount_rate ~ log_month_since_default + " + " + ".join(fwl_features)
 
-    # Only cashflow recieve
-    data = data[data["has_cf"] == 1]
-    data["amount_rate"] = data["amount"] / data["ead"]
+    # Training data
+    data = data[data["has_cf"] == 1] #Only cashflow recieve
+    data = data[data["month_since_default"] > 0] #Using log transform --> 0 cannot use
+    data["log_amount_rate"] = np.log(data["amount"] / data["ead"] + 1e-6) #Fit model on log scale
+    data["log_month_since_default"] = np.log(data["month_since_default"]) #Fit model on log scale
 
     models = {}
 
@@ -468,14 +470,15 @@ def fit_cf_amount_models(
     else:
         results = []
         for key, model in models.items():
-            msd = model.model.exog[:, 1]
-            pred = model.predict()
-            df_tmp = pd.DataFrame({
-                "model": key,
-                "month_since_default": msd,
-                "pred": pred
-            })
-
+            msd = np.exp(model.model.exog[:, 1])
+            pred = np.exp(model.predict())
+            df_tmp = pd.DataFrame(
+                {
+                    "model": key,
+                    "month_since_default": msd,
+                    "pred": pred
+                }
+            )
             results.append(df_tmp)
 
         df_plot = pd.concat(results, ignore_index = True)
