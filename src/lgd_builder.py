@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 
 # Helper function
 # Training data for default account with FWL
-def build_default_fwl_data(
+def _build_default_fwl_data(
     df_accounts: pd.DataFrame,
     df_mev: pd.DataFrame,
     fwl_features: list
@@ -49,7 +49,7 @@ def build_default_fwl_data(
     return df_train
    
 # Training data for cashflow with FWL
-def build_cashflow_fwl_data(
+def _build_cashflow_fwl_data(
     df_accounts: pd.DataFrame,
     df_cashflow: pd.DataFrame,
     df_mev: pd.DataFrame = None,
@@ -183,7 +183,7 @@ def compute_actual_lgd(
     
     print("=== Result ===")
     for _, row in df_avg.iterrows():
-        print(f"    resolution_type {int(row['resolution_type']):>3} - LGD: {row['lgd'] * 100:.2f}%")
+        print(f"Resolution_type {int(row['resolution_type']):>3} - LGD: {row['lgd'] * 100:.2f}%")
 
     return df.drop("pv", axis = 1)
 
@@ -227,7 +227,7 @@ def fit_survival_model(
     if fwl_features is None:
         df_train = df_tmp[base_features]
     else:
-        df_tmp = build_default_fwl_data(df_accounts, df_mev, fwl_features)
+        df_tmp = _build_default_fwl_data(df_accounts, df_mev, fwl_features)
         df_train = df_tmp[base_features + fwl_features]
     
     # AFT Model
@@ -297,8 +297,8 @@ def fit_resolution_type_model(
         df_train = df_completed[base_features]
         df_test = df_incompleted[base_features]
     else:
-        df_tmp_completed = build_default_fwl_data(df_completed, df_mev, fwl_features)
-        df_tmp_incompleted = build_default_fwl_data(df_incompleted, df_mev, fwl_features)
+        df_tmp_completed = _build_default_fwl_data(df_completed, df_mev, fwl_features)
+        df_tmp_incompleted = _build_default_fwl_data(df_incompleted, df_mev, fwl_features)
         df_train = df_tmp_completed[base_features + fwl_features]
         df_test = df_tmp_incompleted[base_features + fwl_features]
         
@@ -358,11 +358,11 @@ def fit_cf_hazard_model(
     base_features = ["eir", "ead", "month_since_default"]
 
     if fwl_features is None:
-        df_train = build_cashflow_fwl_data(df_accounts, df_cashflow)
+        df_train = _build_cashflow_fwl_data(df_accounts, df_cashflow)
         X = df_train[base_features]
         y_train = df_train["has_cf"]
     else:
-        df_train = build_cashflow_fwl_data(df_accounts, df_cashflow, df_mev, fwl_features)
+        df_train = _build_cashflow_fwl_data(df_accounts, df_cashflow, df_mev, fwl_features)
         X = df_train[base_features + fwl_features]
         y_train = df_train["has_cf"]
 
@@ -445,10 +445,10 @@ def fit_cf_amount_models(
     """
 
     if fwl_features is None:
-        data = build_cashflow_fwl_data(df_accounts, df_cashflow)
+        data = _build_cashflow_fwl_data(df_accounts, df_cashflow)
         formula = f"log_amount_rate ~ log_month_since_default"
     else:
-        data = build_cashflow_fwl_data(df_accounts, df_cashflow, df_mev, fwl_features)
+        data = _build_cashflow_fwl_data(df_accounts, df_cashflow, df_mev, fwl_features)
         formula = f"log_amount_rate ~ log_month_since_default + " + " + ".join(fwl_features)
 
     # Training data
@@ -551,7 +551,7 @@ def build_unsolved_default_fwl_data(
 
     else:
         # Mapping with MEV(s)
-        df_unsolved = build_default_fwl_data(df_unsolved, df_mev, fwl_features)
+        df_unsolved = _build_default_fwl_data(df_unsolved, df_mev, fwl_features)
         
         # Predict time to resolution
         df_unsolved["exp_time_to_resolution"] = aft.predict_median(df_unsolved[aft_idx + fwl_features]).astype(int)
