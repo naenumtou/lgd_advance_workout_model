@@ -648,3 +648,200 @@ def build_unsolved_default_fwl_data(
             ) #Month since default at 0 --> do not calculate recovery since it is default date
             
     return df_cf_haz, type_proba_df
+
+# Estimate unsolved LGD
+def compute_est_lgd(
+    df_accounts: pd.DataFrame,
+    df_cashflow: pd.DataFrame,
+    df_cf_incomplete: pd.DataFrame,
+    type_proba_df: pd.DataFrame
+) -> pd.DataFrame:
+    
+    """
+    Compute unbias LGD.
+
+    Description:
+        The estimated cashflow recieve rate of unsolved cases have been created.
+        The estimated cashflow is compuated by probability of cashflow recieve multiply by EAD
+        and multiply probability of cashflow rate. Then, the estimated is discounted to
+        present value (PV) by EIR.
+
+        The LGD is computed by 1 - summation of PV(Recovery) divided EAD.
+        PV = Σ CF_t / (1 + EIR/12)^t
+        LGD = 1 - PV / EAD
+
+        The LGD is weighted by probability of resolution types model to get weighted average LGD.
+
+    Args:
+        df_accounts (pd.DataFrame)          : Input default data.
+        df_cashflow (pd.DataFrame)          : Input actual cashflow data.
+        df_cf_incomplete (pd.DataFrame)     : Input estimated cashflow data.
+        type_proba_df (pd.DataFrame)        : Input probability of resolution types.
+
+    Returns:
+        pd.DataFrame: Data with final LGD combined both of actual LGD from resolved and estimated LGD from unsolved.
+
+    Notes:
+        - The actual cashflow recieve amount is leveraged as much as possible from actual data.
+        - The estimated resolution type is using the highest probability from resolution types model.
+    """
+    
+    # Cashflow calculation
+    df = df_cf_incomplete.copy()
+    incomplete_ids = df["acc_id"].unique().tolist()
+    resolved_type = type_proba_df.columns[1:]
+
+    # PV of actual recovery
+    # Actual recovery where Month since default at 0 is already flagged as 0 cashflow
+    actual_cashflow = df_cashflow[df_cashflow["acc_id"].isin(incomplete_ids)]
+    incomplete_acc = df_accounts.loc[df_accounts["acc_id"].isin(incomplete_ids)] #Only unsolved cases
+    eir = df_accounts.set_index("acc_id")["eir"].to_dict()
+    actual_cashflow["eir"] = actual_cashflow["acc_id"].map(eir)
+    actual_cashflow["pv"] = actual_cashflow["amount"] / (1 + actual_cashflow["eir"] / 12) ** actual_cashflow["month_since_default"]
+
+    # PV of estimate recovery
+    # Month since default at 0 --> do not calculate recovery since it is default date
+    df["p_cf"] = np.where(
+        df["month_since_default"] == 0,
+        0,
+        df["p_cf"]
+    )
+    
+    for tpy in resolved_type:
+        df[f"pv_{tpy}"] = (df["p_cf"] * df["ead"] * df[f"{tpy}_cf_rate"]) / (1 + df["eir"] / 12) ** df["month_since_default"]
+
+    # Using actual recovery with model to avoid underestimate LGD
+    df = pd.merge(
+        df,
+        actual_cashflow[["acc_id", "month_since_default", "pv"]],
+        how = "left",
+        left_on = ["acc_id", "month_since_default"],
+        right_on = ["acc_id", "month_since_default"]
+    )
+    
+    # If there are actual recovery --> using actual recovery. If not --> using estimate recovery
+    mask = df["pv"].notna() & (df["pv"] != 0)
+    for tpy in resolved_type:
+        df[f"pv_{tpy}"] = np.where(
+            mask,
+            df["pv"],
+            df[f"pv_{tpy}"]
+        )
+ 
+    # Total estimate PV of recovery
+    pv_cols = [f"pv_{tpy}" for tpy in resolved_type]
+    pv_cashflow = (
+        df.groupby(["acc_id", "ead"], as_index = False)[pv_cols]
+        .sum()
+    )
+
+    # Compute estimate LGD by discounting cashflow
+    for tpy in resolved_type:
+        pv_cashflow[f"lgd_{tpy}"] = np.clip(
+            1 - pv_cashflow[f"pv_{tpy}"] / pv_cashflow["ead"],
+            0.0, 1.0
+        )
+    
+    # Probability resolution type weighted
+    lgd_cols  = [f"lgd_{c}" for c in resolved_type]
+    pv_cashflow[[f"{c}_w" for c in lgd_cols]] = (
+        pv_cashflow[lgd_cols].values * type_proba_df[resolved_type].values
+    )
+    pv_cashflow["lgd_expected"] = pv_cashflow[
+        ["lgd_0_w", "lgd_202_w", "lgd_204_w", "lgd_205_w"]
+    ].sum(axis = 1)
+
+    # Find resolution type for unsolved cases
+    unsolved_type = type_proba_df.copy()
+    unsolved_type["est_res_type"] = (
+        unsolved_type[resolved_type].idxmax(axis = 1)
+    )
+    unsolved_type = unsolved_type.set_index("acc_id")["est_res_type"]
+    pv_cashflow["est_res_type"] = pv_cashflow["acc_id"].map(unsolved_type)
+
+    # LGD Final data
+    lgd_final_df = df_accounts.copy()
+
+    lgd_final_df = (
+        lgd_final_df.merge(pv_cashflow[["acc_id", "est_res_type", "lgd_expected"]], on = "acc_id", how = "left")
+        .assign(
+            resolution_type_final = lambda x: x["est_res_type"].combine_first(x["resolution_type"]),
+            lgd_final = lambda x: x["lgd_expected"].combine_first(x["lgd_actual"]),
+        )
+    )
+
+    # Export final LGD
+    filename = "unbias_lgd"
+    lgd_final_df.to_parquet(
+        f"../data/processed/{filename}.parquet",
+        engine = 'pyarrow'
+    )
+    print(f"[INFO]: Export - '..data/processed/{filename}.parquet'")
+
+    # Summary
+    # Resolved
+    mask = lgd_final_df["lgd_actual"].notna()
+    actual_port_lgd = np.average(
+        lgd_final_df.loc[mask, "lgd_actual"],
+        weights = lgd_final_df.loc[mask, "ead"]
+    )
+    actual_res_lgd = lgd_final_df[lgd_final_df["resolved"] == 1].groupby(
+    "resolution_type", as_index = False
+    ).apply(
+        lambda x: np.average(
+            x["lgd_actual"], weights = x["ead"]
+        )
+    ).rename(columns = {None: "lgd"})
+    
+    # Unsolved
+    mask = lgd_final_df["lgd_expected"].notna()
+    est_port_lgd = np.average(
+        lgd_final_df.loc[mask, "lgd_expected"],
+        weights = lgd_final_df.loc[mask, "ead"]
+    )
+    est_res_lgd = lgd_final_df[lgd_final_df["resolved"] == 0].groupby(
+    "est_res_type", as_index = False
+    ).apply(
+        lambda x: np.average(
+            x["lgd_expected"], weights = x["ead"]
+        )
+    ).rename(columns = {None: "lgd"})
+
+    # Combine (Unbias)
+    unbias_port_lgd = np.average(
+        lgd_final_df["lgd_final"],
+        weights = lgd_final_df["ead"]
+    )
+    unbias_res_lgd = lgd_final_df.groupby(
+    ["acc_status", "resolution_type_final"], as_index = False
+    ).apply(
+        lambda x: np.average(
+            x["lgd_final"], weights = x["ead"]
+        )
+    ).rename(columns = {None: 'lgd'})
+    
+    # Print summary
+    lines = 70
+    print("\n" + "=" * lines)
+    print("Unbias LGD Model")
+    print("=" * lines)
+    print(f"{'Total default accounts':<{30}}: {len(lgd_final_df):,}")
+    print(f"    {'Resolved cases':<{26}}: {sum(lgd_final_df["resolved"]):,}")
+    print(f"    {'Unsolved cases':<{26}}: {len(lgd_final_df) - sum(lgd_final_df["resolved"]):,}")
+    
+    print("=" * lines)
+    print(f"{'Resolved portfolio LGD':<{30}}: {actual_port_lgd * 100:.2f}%")
+    for _, row in actual_res_lgd.iterrows():
+        print(f"    Resolution type {int(row['resolution_type']):<{10}}: {row['lgd'] * 100:.2f}%")
+    
+    print("=" * lines)
+    print(f"{'Unsolved portfolio LGD':<{30}}: {est_port_lgd * 100:.2f}%")
+    for _, row in est_res_lgd.iterrows():
+        print(f"    Resolution type {int(row['est_res_type']):<{10}}: {row['lgd'] * 100:.2f}%")
+
+    print("=" * lines)
+    print(f"{'Unbias portfolio LGD':<{30}}: {unbias_port_lgd * 100:.2f}%")
+    for _, row in unbias_res_lgd.iterrows():
+        print(f"    Default status {int(row['acc_status']):<{10}} Resolution type {int(row['resolution_type_final']):<{10}} : {row['lgd'] * 100:.2f}%")
+
+    return lgd_final_df
