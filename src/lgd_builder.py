@@ -183,7 +183,7 @@ def compute_actual_lgd(
     
     print("=== Result ===")
     for _, row in df_avg.iterrows():
-        print(f"Resolution_type {int(row['resolution_type']):>3} - LGD: {row['lgd'] * 100:.2f}%")
+        print(f"Resolution type {int(row['resolution_type']):>3} - LGD: {row['lgd'] * 100:.2f}%")
 
     return df.drop("pv", axis = 1)
 
