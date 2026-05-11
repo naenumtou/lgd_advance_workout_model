@@ -153,11 +153,11 @@ def compute_actual_lgd(
     # PV of recovery
     # Amount already deduct direct cost
     panel["pv"] = panel[amount_col] / (1 + panel[eir_col] / 12) ** panel[month_s_col]
-    pv_cahflow = panel.groupby(acc_id_col)["pv"].sum()
+    pv_cashflow = panel.groupby(acc_id_col)["pv"].sum()
 
     # Mapping back to default account
     df = df_accounts.copy()
-    df["pv"] = df[acc_id_col].map(pv_cahflow)
+    df["pv"] = df[acc_id_col].map(pv_cashflow)
 
     # Compute actual LGD by discounting cashflow
     df["lgd_actual"] = np.clip(
