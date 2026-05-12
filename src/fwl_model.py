@@ -255,3 +255,57 @@ def kruskal_algor(
     )
 
     return kruskal_output
+
+# Composit score
+def composite_score(
+    test_result: pd.DataFrame,
+    weights: dict = None,
+    p_threshold: float = 0.05,
+    n_select: int = 10
+) -> pd.DataFrame:
+    
+    df = test_result.copy()
+    if weights is None:
+        weights = {"m1": 1.0, "m2": 1.0, "m3": 1.0, "m4": 1.0} #Equal important
+    
+    # Penalty mask --> if p > threshold --> ignore
+    df["resolution_type_r"] = np.where(df["resolution_type_p_value"] < p_threshold, df["resolution_type_stat"], 0) #No abs, already scaled
+    df["time_to_resolution_r"] = np.where(df["time_to_resolution_p_value"] < p_threshold, df["time_to_resolution_stat"].abs(), 0)
+    df["log_amount_rate_r"] = np.where(df["log_amount_rate_p_value"] < p_threshold, df["log_amount_rate_stat"].abs(), 0)
+    df["has_cf_r"] = np.where(df["has_cf_p_value"] < p_threshold, df["has_cf_stat"].abs(), 0)
+   
+    # Rank on each metric (higher = better)
+    for col in ["resolution_type_r", "time_to_resolution_r", "log_amount_rate_r", "has_cf_r"]:
+        df[f"r_{col}"] = stats.rankdata(df[col]) / len(df)  #Normalize 0–1
+    
+    # Weighted composite score
+    df["composite_score"] = (
+        weights["m1"] * df["r_resolution_type_r"] +
+        weights["m2"] * df["r_time_to_resolution_r"]  +
+        weights["m3"] * df["r_log_amount_rate_r"]  +
+        weights["m4"] * df["r_has_cf_r"]
+    ) / sum(weights.values())
+    
+    # Count significant on each model
+    df["n_significant"] = (
+        (df["resolution_type_p_value"] < p_threshold).astype(int) +
+        (df["time_to_resolution_p_value"] < p_threshold).astype(int) +
+        (df["log_amount_rate_p_value"] < p_threshold).astype(int) +
+        (df["has_cf_p_value"] < p_threshold).astype(int)
+    )
+
+    # Sort
+    df = df.sort_values(
+        ['n_significant', 'composite_score'],
+        ascending = [False, False]
+    ).head(n_select) #Select top n
+
+    # Print summary
+    lines = 40
+    print("\n" + "=" * lines)
+    print("MEV(s) Significant Score")
+    print("=" * lines)
+    for _, row in df.iterrows():
+        print(f"{row['mev']:<20}: {row['composite_score'] * 100:.2f}")
+    
+    return
