@@ -1,9 +1,10 @@
 
 import pandas as pd
 import numpy as np
+import warnings
 from scipy import stats
 
-from scipy.stats import rankdata, chi2
+warnings.filterwarnings("ignore")
 
 # Helper function
 def _mapping_mev(
