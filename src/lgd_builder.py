@@ -354,6 +354,7 @@ def fit_cf_hazard_model(
         - If outplot = Ture --> output parameters will be 2.
         - If outplot = False --> output parameters will be 1.
     """
+    
     # Base features
     base_features = ["eir", "ead", "month_since_default"]
 
