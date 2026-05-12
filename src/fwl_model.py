@@ -263,7 +263,31 @@ def composite_score(
     weights: dict = None,
     p_threshold: float = 0.05,
     n_select: int = 10
-) -> pd.DataFrame:
+) -> None:
+    
+    """
+    Composit score on each MEV(s) Feature.
+
+    Description:
+        All the tests are combined into one dataframe. The composit scores are
+        computed by t-statistic from each that having statistical significant of
+        p-value. The top-n MEV(s) is selected as the forward-looking model.
+
+    Args:
+        test_result (pd.DataFrame)  : Input combined tests table results.
+        weights (dict, optional)    : Dictionary of weights for each test.
+                                    Keys are test key. Values are weight of the test.
+                                    {keys: values} --> {name (str): weight (float)}
+                                    If None, the equal weights are considered.
+        p_threshold (float)         : The threshold of p-value. Default is 0.05.
+        n_select (int)              : Top-n MEV(s) of highest composit scores.
+
+    Returns:
+        print: Top-n highest composit scores.
+
+    Notes:
+        - N/A.
+    """
     
     df = test_result.copy()
     if weights is None:
