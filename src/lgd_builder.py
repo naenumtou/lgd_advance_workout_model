@@ -496,7 +496,7 @@ def build_unsolved_default_fwl_data(
     cf_hazard_model: LogisticRegression,
     cf_amount_models: dict,
     df_mev: pd.DataFrame = None,
-    fwl_features: list = None,
+    fwl_features: list = None
 ) -> pd.DataFrame:
     
     """
@@ -655,7 +655,9 @@ def compute_est_lgd(
     df_accounts: pd.DataFrame,
     df_cashflow: pd.DataFrame,
     df_cf_incomplete: pd.DataFrame,
-    type_proba_df: pd.DataFrame
+    type_proba_df: pd.DataFrame,
+    outfile: bool = False,
+    file_name = str
 ) -> pd.DataFrame:
     
     """
@@ -678,6 +680,8 @@ def compute_est_lgd(
         df_cashflow (pd.DataFrame)          : Input actual cashflow data.
         df_cf_incomplete (pd.DataFrame)     : Input estimated cashflow data.
         type_proba_df (pd.DataFrame)        : Input probability of resolution types.
+        outfile (bool)                      : Option for export file.
+        file_name (str)                     : Export file name.
 
     Returns:
         pd.DataFrame: Data with final LGD combined both of actual LGD from resolved and estimated LGD from unsolved.
@@ -772,12 +776,12 @@ def compute_est_lgd(
     )
 
     # Export final LGD
-    filename = "unbias_lgd"
-    lgd_final_df.to_parquet(
-        f"../data/processed/{filename}.parquet",
-        engine = 'pyarrow'
-    )
-    print(f"[INFO]: Export - '..data/processed/{filename}.parquet'")
+    if outfile is True:
+        lgd_final_df.to_parquet(
+            f"../data/processed/{file_name}.parquet",
+            engine = 'pyarrow'
+        )
+        print(f"[INFO]: Export - '..data/processed/{file_name}.parquet'")
 
     # Summary
     # Resolved
