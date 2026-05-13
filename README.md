@@ -47,7 +47,8 @@ lgd_advance_workout_model/
 │   └── raw/
 |   |   ├── main_transaction_data.parquet          #Not tracked by git
 |   |   ├── cashflow_data.parquet          #Not tracked by git
-|   |   └── mev_transformed.parquet          #Not tracked by git
+|   |   ├── mev_transformed.parquet          #Not tracked by git
+|   |   └── mev_sign_transformed.parquet          #Not tracked by git
 ├── requirements.txt
 └── README.md
 ```
