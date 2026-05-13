@@ -52,3 +52,25 @@ lgd_advance_workout_model/
 ├── requirements.txt
 └── README.md
 ```
+
+<p align="center">
+<img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/245d23e5-ee68-4562-ade0-a82071921940" />
+</p>
+
+<p align="center">
+<img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/4146f938-d142-4249-83c2-9dce093159e2" />
+</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
