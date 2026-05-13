@@ -289,7 +289,10 @@ def composite_score(
         - N/A.
     """
     
-    df = test_result.copy()
+    # Drop select only correct sign or either sign
+    df = test_result[((test_result["time_to_resolution_stat"] / test_result["sign"]) > 0) | (test_result["sign"] == 0)]
+
+    # Weights per test
     if weights is None:
         weights = {"m1": 1.0, "m2": 1.0, "m3": 1.0, "m4": 1.0} #Equal important
     
