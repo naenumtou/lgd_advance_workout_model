@@ -61,6 +61,10 @@ lgd_advance_workout_model/
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/4146f938-d142-4249-83c2-9dce093159e2" />
 </p>
 
+<p align="center">
+<img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/9875a6af-5090-4766-beb2-e067c3ed9d23" />
+</p>
+
 
 
 
