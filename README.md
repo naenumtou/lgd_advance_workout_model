@@ -36,14 +36,15 @@ lgd_advance_workout_model/
 │   ├── data_prep.py
 │   ├── lgd_builder.py
 │   ├── fwl_model.py
-│   ├── ....py
+│   ├── residual_curve.py
 │   └── plot_function.py
 ├── data/          
 │   ├── processed/
 |   |   ├── default_account.parquet          #Not tracked by git
 |   |   ├── default_cashflow.parquet          #Not tracked by git
 |   |   ├── unbias_lgd.parquet          #Not tracked by git
-|   |   └── fwl_lgd.parquet          #Not tracked by git
+|   |   ├── fwl_lgd.parquet          #Not tracked by git
+|   |   └── residual_lgd.parquet          #Not tracked by git
 │   └── raw/
 |   |   ├── main_transaction_data.parquet          #Not tracked by git
 |   |   ├── cashflow_data.parquet          #Not tracked by git
