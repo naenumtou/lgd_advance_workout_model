@@ -241,3 +241,47 @@ def plot_pred_cash_amount(
     plt.tight_layout()
 
     return fig
+
+# Plot residual LGD
+def plot_residual_lgd(
+    df: pd.DataFrame
+) -> None:
+    
+    """
+    Plot residual LGD.
+
+    Description:
+        Plot residual LGD by default status and resolution type.
+
+    Args:
+        df (pd.DataFrame): DataFrame of summary of residual LGD.
+
+    Returns:
+        Figure: Showing figure from matplotlib.
+
+    Notes:
+        - N/A.
+    """
+
+    df_plot = df.copy()
+    df_plot["segment"] = (
+    "Default status " + df_plot["acc_status"].astype(str) +
+    " Resolution type " + df_plot["res_type_final"].astype(str)
+    )
+
+    # Plot
+    plt.figure(figsize = (10, 6))
+    sns.lineplot(
+        data = df_plot,
+        x = "month_since_default",
+        y = "residual LGD",
+        hue = "segment"
+    )
+    plt.gca().set_yticklabels([f'{i * 100:.2f}%' for i in plt.gca().get_yticks()])
+    plt.title("Residual LGD by default status and resolution type")
+    plt.xlabel("Month since default")
+    plt.ylabel("Residual LGD")
+    plt.legend(frameon = True, facecolor = 'white', loc = "lower right")
+    plt.tight_layout()
+    
+    return plt.show()
