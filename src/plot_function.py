@@ -274,7 +274,7 @@ def plot_residual_lgd(
     sns.lineplot(
         data = df_plot,
         x = "month_since_default",
-        y = "residual LGD",
+        y = "residual_lgd",
         hue = "segment"
     )
     plt.gca().set_yticklabels([f'{i * 100:.2f}%' for i in plt.gca().get_yticks()])
