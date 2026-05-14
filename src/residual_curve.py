@@ -210,7 +210,7 @@ def residual_lgd(
     )
 
     # Expected recovery
-    df["expected_recovery"] = df["ultimate_recovery"] = df["recovery_to_ead"]
+    df["expected_recovery"] = df["ultimate_recovery"] - df["recovery_to_ead"]
 
     # Residual LGD
     df["residual LGD"] = 1 - df["expected_recovery"] / df["remaining_ead"]
