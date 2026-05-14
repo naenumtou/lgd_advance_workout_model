@@ -126,7 +126,9 @@ def residual_cashflow(
 
 # Residual LGD
 def residual_lgd(
-    df_res_cashflow: pd.DataFrame
+    df_res_cashflow: pd.DataFrame,
+    outfile: bool = False,
+    file_name = str
 ) -> pd.DataFrame:
     
     """
@@ -142,8 +144,10 @@ def residual_lgd(
               the lower the expected future recovery, resulting in a higher LGD.
         
     Args:
-        df_res_cashflow (pd.DataFrame): Input final cashflow combined both of actual from resolved
-                                        and estimated from unsolved.
+        df_res_cashflow (pd.DataFrame)  : Input final cashflow combined both of actual from resolved
+                                          and estimated from unsolved.
+        outfile (bool)                  : Option for export file.
+        file_name (str)                 : Export file name.
 
     Returns:
         pd.DataFrame: Residual LGD table by default status and resolution type.
@@ -178,11 +182,15 @@ def residual_lgd(
         )
         .sort_values(by = ["acc_id", "month_since_default"])
     )
+    cashflow["pv_amount"] = cashflow["pv_amount"].mask(cashflow["pv_amount"] < 0) #Negative will replace with NaN
     cashflow["cum_pv_amount"] = (
-        cashflow["pv_amount"].fillna(0)
+        cashflow["pv_amount"]
+        .fillna(0)
         .groupby(cashflow["acc_id"])
         .cumsum()
     )
+
+    # Percent recovery to EAD
     cashflow["recovery_to_ead"] = cashflow["cum_pv_amount"] / cashflow["ead"]
     
     # Aggregated by default status, resolution type and month since default
@@ -194,10 +202,16 @@ def residual_lgd(
             ead = ("ead", "sum"),
             w = ("w", "sum")
         )
-    )
+    ).sort_values(["acc_status", "res_type_final", "month_since_default"])
 
     # Average of %recovery
     df["recovery_to_ead"] = df["w"] / df["ead"]
+
+    # Enforce monotonic
+    df["recovery_to_ead"] = (
+        df.groupby(["acc_status", "res_type_final"])["recovery_to_ead"]
+        .cummax()
+    )
 
     # Remaining EAD
     df["remaining_ead"] = 1 - df["recovery_to_ead"]
@@ -214,5 +228,13 @@ def residual_lgd(
 
     # Residual LGD
     df["residual LGD"] = 1 - df["expected_recovery"] / df["remaining_ead"]
-
+    
+    # Export final LGD
+    if outfile is True:
+        df.to_parquet(
+            f"../data/processed/{file_name}.parquet",
+            engine = 'pyarrow'
+        )
+        print(f"[INFO]: Export - '..data/processed/{file_name}.parquet'")
+        
     return df
