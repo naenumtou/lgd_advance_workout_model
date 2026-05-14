@@ -5,6 +5,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+# Residual cashflow
 def residual_cashflow(
     df_accounts: pd.DataFrame,
     df_cashflow: pd.DataFrame,
@@ -29,7 +30,7 @@ def residual_cashflow(
         type_proba_df (pd.DataFrame)        : Input probability of resolution types.
 
     Returns:
-        pd.DataFrame: Data with final cashflow combined both of actual LGD from resolved and estimated LGD from unsolved.
+        pd.DataFrame: Data with final cashflow combined both of actual from resolved and estimated from unsolved.
 
     Notes:
         - The actual cashflow recieve amount is leveraged as much as possible from actual data.
@@ -122,3 +123,96 @@ def residual_cashflow(
     df_comb["acc_status"] = df_comb["acc_id"].map(acc_status)
 
     return df_comb
+
+# Residual LGD
+def residual_lgd(
+    df_res_cashflow: pd.DataFrame
+) -> pd.DataFrame:
+    
+    """
+    Compute residual LGD.
+
+    Description:
+        Residual LGD refers to the expected loss for customers who are already classified in Stage 3.
+        The main distinction between LGD for Stage 1 and Stage 2 and Residual LGD for Stage 3 is as follows:
+            - LGD for Stage 1 and Stage 2 applies to performing customers and estimates losses based on
+              the total expected recovery after a potential default.
+            - Residual LGD for Stage 3 focuses only on the remaining recoverable amount. It is influenced
+              by how long a customer has been in Stage 3. The longer the customer stays in Stage 3,
+              the lower the expected future recovery, resulting in a higher LGD.
+        
+    Args:
+        df_res_cashflow (pd.DataFrame): Input final cashflow combined both of actual from resolved
+                                        and estimated from unsolved.
+
+    Returns:
+        pd.DataFrame: Residual LGD table by default status and resolution type.
+
+    Notes:
+        - The input final cashflow is re-built by the equal range of month since default.
+    """
+
+    # Create equal range before aggregate to avoid negatively increase
+    # Create all possible cashflow ranges
+    months = pd.DataFrame(
+        {
+            "month_since_default": range(
+                df_res_cashflow["month_since_default"].min(),
+                df_res_cashflow["month_since_default"].max() + 1
+       
+            )
+        }
+    )
+    
+    # Prepare account for mapping
+    account_map = df_res_cashflow.drop(["pv_amount", "month_since_default"], axis = 1).drop_duplicates()
+    panel = account_map.merge(months, how = "cross")
+
+    # Map fully cashflow
+    cashflow = (
+        panel
+        .merge(
+            df_res_cashflow[["acc_id", "month_since_default", "pv_amount"]],
+            how = "left",
+            on = ["acc_id", "month_since_default"]
+        )
+        .sort_values(by = ["acc_id", "month_since_default"])
+    )
+    cashflow["cum_pv_amount"] = (
+        cashflow["pv_amount"].fillna(0)
+        .groupby(cashflow["acc_id"])
+        .cumsum()
+    )
+    cashflow["recovery_to_ead"] = cashflow["cum_pv_amount"] / cashflow["ead"]
+    
+    # Aggregated by default status, resolution type and month since default
+    df = (
+        cashflow
+        .assign(w = cashflow["recovery_to_ead"] * cashflow["ead"])
+        .groupby(["acc_status", "res_type_final", "month_since_default"], as_index = False)
+        .agg(
+            ead = ("ead", "sum"),
+            w = ("w", "sum")
+        )
+    )
+
+    # Average of %recovery
+    df["recovery_to_ead"] = df["w"] / df["ead"]
+
+    # Remaining EAD
+    df["remaining_ead"] = 1 - df["recovery_to_ead"]
+
+    # Ultimate recovery
+    df["ultimate_recovery"] = (
+        df
+        .groupby(["acc_status", "res_type_final"])["recovery_to_ead"]
+        .transform("max")
+    )
+
+    # Expected recovery
+    df["expected_recovery"] = df["ultimate_recovery"] = df["recovery_to_ead"]
+
+    # Residual LGD
+    df["residual LGD"] = 1 - df["expected_recovery"] / df["remaining_ead"]
+
+    return df
