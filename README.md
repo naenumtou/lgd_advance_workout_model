@@ -10,6 +10,12 @@
 ![Seaborn](https://img.shields.io/badge/Seaborn-Statistical%20Plots-teal?style=for-the-badge)
 ![MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
+This repository implements a **Workout-based Loss Given Default (LGD)** model aligned with IFRS 9 Expected Credit Loss (ECL) requirements. The framework estimates **unbias LGD, forward-looking LGD and Residual LGD** by modeling recovery behavior, cashflow timing, resolution pathways, and macroeconomic relationships throughout the post-default lifecycle. It is designed for Stage 1, Stage 2, and Stage 3 impairment calculations and supports transparent, auditable, and production ready credit risk modeling suitable for regulatory and financial reporting purposes.
+
+<p align="center">
+<img width="1983" height="793" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/58112a29-7b07-4a0e-bcb7-3232f193611e" />
+</p>
+
 ## Overview
 
 ## Project Structure
@@ -54,18 +60,57 @@ lgd_advance_workout_model/
 └── README.md
 ```
 
+## Project Details
+### 0. Data Preparation
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/245d23e5-ee68-4562-ade0-a82071921940" />
 </p>
 
+This framework transforms raw account-level default and recovery data into a structured analytical dataset for IFRS 9 LGD modeling. The process is divided into two major components; **1) Default Population** and **2) Monthly Recovery Panel**. Together, these steps create a clean, standardized, and model-ready dataset that supports survival analysis, recovery estimation, cashflow modeling, and residual LGD computation.
+
+The methodology is designed to ensure consistency across default events, remove ambiguous observations, and preserve the chronological behavior of recovery cashflows over time. It also standardizes the treatment of resolved and ongoing collections to support unbiased recovery analysis and forward-looking LGD estimation.
+
+#### 0.1 Default Population
+The Default Population Engine constructs the master default account dataset used throughout the LGD modeling framework. The objective is to identify the first valid default event per account, determine the latest resolution status, and calculate the time to resolution metric required for recovery modeling.
+
+**Key Processes**
+
+
+**Business Logic**
+- Accounts under ongoing collection statuses use the latest observable modeling period as the effective resolution date.
+- Resolved accounts use the actual resolution date.
+- Time to resolution is capped at a minimum of one month for modeling stability.
+- Each account can only contribute one default observation to the modeling population.
+
+#### 0.2 Monthly Recovery Panel
+The Monthly Recovery Panel converts account-level default observations into a monthly longitudinal recovery panel. This panel captures the full recovery timeline for each account and enables month-by-month recovery analysis. The process creates a continuous monthly observation structure from default date until resolution or latest observable period. Actual cashflows are then mapped into this timeline to support recovery probability and recovery amount modeling.
+
+**Business Logic**
+- Month 0 represents the default month and cannot contain recovery cashflows.
+- Missing monthly recoveries are treated as zero recovery observations.
+- Ongoing accounts remain observable until the latest modeling period.
+- Resolved accounts terminate at the actual resolution month.
+- The panel preserves the sequential behavior of post-default recovery dynamics.
+
+### 1. Unbias LGD
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/4146f938-d142-4249-83c2-9dce093159e2" />
 </p>
 
+### 2. Forward-looking LGD
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/9875a6af-5090-4766-beb2-e067c3ed9d23" />
 </p>
 
+
+### 3. Residual LGD
+<p align="center">
+<img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/a7a46938-cdca-4a97-b66c-6c1225ac9d81" />
+</p>
+
+
+## License
+MIT · Built for learning purposes
 
 
 
