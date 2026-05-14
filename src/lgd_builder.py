@@ -699,7 +699,6 @@ def compute_est_lgd(
     # PV of actual recovery
     # Actual recovery where Month since default at 0 is already flagged as 0 cashflow
     actual_cashflow = df_cashflow[df_cashflow["acc_id"].isin(incomplete_ids)]
-    incomplete_acc = df_accounts.loc[df_accounts["acc_id"].isin(incomplete_ids)] #Only unsolved cases
     eir = df_accounts.set_index("acc_id")["eir"].to_dict()
     actual_cashflow["eir"] = actual_cashflow["acc_id"].map(eir)
     actual_cashflow["pv"] = actual_cashflow["amount"] / (1 + actual_cashflow["eir"] / 12) ** actual_cashflow["month_since_default"]
