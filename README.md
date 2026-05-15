@@ -17,6 +17,22 @@ This repository implements a **Workout-based Loss Given Default (LGD)** model al
 </p>
 
 ## Overview
+This project implements a Workout-based Loss Given Default (LGD) model designed to support IFRS 9 Expected Credit Loss (ECL) calculation. The framework estimates Unbias, Forward-looking LGD and Residual LGD by modeling post-default recovery behavior, recovery timing, resolution pathways, and discounted recovery cashflows throughout the collection lifecycle. By tracking how recoveries evolve over time since default and incorporating macroeconomic drivers, the approach provides a transparent and interpretable framework aligned with IFRS 9 requirements for forward-looking credit risk estimation.
+
+The implementation emphasizes:
+- Workout level transparency for auditability and model governance
+- Cashflow based recovery estimation using discounted recovery cashflows and effective interest rates (EIR)
+- Behavioral recovery modeling through separate modeling of:
+  - Time to resolution model
+  - Resolution type model
+  - Cashflow recieve probability model and
+  - Recovery amount model
+- Forward-looking of macroeconomics integration using statistically selection
+- Vectorized numerical computation for efficiency and scalability
+- Flexible probability weighted recovery aggregation across multiple resolution pathways
+- Residual LGD estimation for Stage 3 accounts based on remaining expected recoveries conditional on time already spent in default
+
+The resulting LGD term structures can be directly used in Stage 1, Stage 2, and Stage 3 IFRS 9 ECL calculation. The project is intended to serve as a practical reference implementation for credit risk practitioners, model developers, and validators rather than a black-box model. All calculations, assumptions, and recovery mechanics are explicitly designed to support validation, backtesting, monitoring, and model explainability.
 
 ## Project Structure
 ```
@@ -75,12 +91,19 @@ The Default Population Engine constructs the master default account dataset used
 
 **Key Processes**
 
+<p align="center">
+<img width="1210" height="537" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/370f979e-2506-4199-914a-1e30cfad51ad" />
+</p>
 
 **Business Logic**
 - Accounts under ongoing collection statuses use the latest observable modeling period as the effective resolution date.
 - Resolved accounts use the actual resolution date.
 - Time to resolution is capped at a minimum of one month for modeling stability.
 - Each account can only contribute one default observation to the modeling population.
+
+<p align="center">
+<img width="481" height="504" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/a029b259-f9c3-445a-9b9f-dff237f207b4" />
+</p>
 
 #### 0.2 Monthly Recovery Panel
 The Monthly Recovery Panel converts account-level default observations into a monthly longitudinal recovery panel. This panel captures the full recovery timeline for each account and enables month-by-month recovery analysis. The process creates a continuous monthly observation structure from default date until resolution or latest observable period. Actual cashflows are then mapped into this timeline to support recovery probability and recovery amount modeling.
@@ -91,6 +114,10 @@ The Monthly Recovery Panel converts account-level default observations into a mo
 - Ongoing accounts remain observable until the latest modeling period.
 - Resolved accounts terminate at the actual resolution month.
 - The panel preserves the sequential behavior of post-default recovery dynamics.
+
+<p align="center">
+<img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/484f5e06-004b-4f64-8e2b-0d3b96553da8" />
+</p>
 
 ### 1. Unbias LGD
 <p align="center">
