@@ -124,6 +124,36 @@ The Monthly Recovery Panel converts account-level default observations into a mo
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/4146f938-d142-4249-83c2-9dce093159e2" />
 </p>
 
+#### 1.1 Resolved Cases
+
+
+```
+[INFO]: Actual LGD for resolved cases
+=== Result ===
+Resolution type   0 - LGD: 0.45%
+Resolution type 202 - LGD: 55.68%
+Resolution type 204 - LGD: 62.41%
+Resolution type 205 - LGD: 90.48%
+```
+
+#### 1.2 Unsolved Cases
+<p align="center">
+<img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/4b5836e7-7641-46e8-b8d8-bb74224a5ad0" />
+</p>
+
+<p align="center">
+<img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/31fdaf67-1e83-4d06-8b59-49dec929a8ae" />
+</p>
+
+<p align="center">
+<img width="989" height="592" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/0a66fefe-a52f-4326-bfb1-ba4ab6a8d017" />
+</p>
+
+<p align="center">
+<img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/d484e99b-5760-4120-83ca-5f2dcd7971ad" />
+</p>
+
+
 ### 2. Forward-looking LGD
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/9875a6af-5090-4766-beb2-e067c3ed9d23" />
