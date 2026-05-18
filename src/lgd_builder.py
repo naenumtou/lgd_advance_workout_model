@@ -811,7 +811,7 @@ def compute_est_lgd(
         )
     ).rename(columns = {None: "lgd"})
 
-    # Combine (Unbias)
+    # Combine
     unbias_port_lgd = np.average(
         lgd_final_df["lgd_final"],
         weights = lgd_final_df["ead"]
@@ -827,7 +827,10 @@ def compute_est_lgd(
     # Print summary
     lines = 70
     print("\n" + "=" * lines)
-    print("Unbias LGD Model")
+    if file_name == "unbias_lgd":
+        print("Unbias LGD Model")
+    else:
+        print("FWL LGD Model")
     print("=" * lines)
     print(f"{'Total default accounts':<{30}}: {len(lgd_final_df):,}")
     print(f"    {'Resolved cases':<{26}}: {sum(lgd_final_df["resolved"]):,}")
