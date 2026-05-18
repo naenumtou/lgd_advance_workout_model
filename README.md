@@ -163,6 +163,8 @@ Resolution type 205 - LGD: 90.48%
 <img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/d484e99b-5760-4120-83ca-5f2dcd7971ad" />
 </p>
 
+#### 1.3 Unbias Result
+
 The final unsolved workout LGD estimate combines all model components together:
 1. Time-to-Resolution Model estimates recovery horizon
 2. Resolution Type Model estimates recovery pathway probabilities
@@ -206,6 +208,114 @@ Unbias portfolio LGD          : 57.03%
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/9875a6af-5090-4766-beb2-e067c3ed9d23" />
 </p>
 
+The forward-looking considers additional relationship of macroeconomic variables (MEV) with the based models. The process is leveraged several statistical analysis to perform the features selection that having strong relationship in the model.
+
+#### 2.1 Spearman Rank Correlation Analysis
+The Spearman Rank Correlation Analysis is used to evaluate whether MEV(s) exhibit a monotonic relationship with key LGD behavioral drivers such as time to resolution and recovery cashflow severity. Unlike linear correlation methods, Spearman correlation operates on ranked observations, making it more robust to outliers, skewed distributions, and non-linear relationships commonly observed in default recovery data.
+
+For the time-to-resolution analysis, the methodology evaluates whether worsening or improving macroeconomic conditions are associated with longer or shorter recovery processes. For recovery amount analysis, only positive recovery cashflows are considered, and the recovery rate is transformed into logarithmic scale relative to Exposure at Default (EAD) to stabilize variance and reduce extreme-value distortion.
+
+The resulting coefficients provide directional sensitivity between each MEV(s) and recovery dynamics, while statistical significance is assessed using p-values derived from t-statistics. This analysis serves as an initial screening framework to identify economically meaningful forward-looking variables suitable for incorporation into IFRS 9 LGD Modeling.
+
+#### 2.2 Point-Biserial Correlation Analysis
+The Point-Biserial Correlation Analysis is designed to measure the relationship between continuous MEV(s) and binary recovery events, specifically whether a recovery cashflow occurs during a given observation period. Within the LGD framework, this analysis helps assess whether certain economic environments influence the likelihood of observing recovery activity after default. The target variable is transformed into a binary indicator where periods with non-zero cashflow are classified as recovery events and periods without recovery are classified as non-events.
+
+Since the point-biserial correlation is mathematically equivalent to Pearson correlation with a binary target, the methodology quantifies both the direction and magnitude of association between macroeconomic conditions and recovery occurrence probability. This analysis is particularly useful for validating forward-looking drivers used in hazard-based recovery models and supports the identification of MEV that influence recovery timing behavior under different economic cycles.
+
+#### 2.3 Kruskal–Wallis Analysis
+The Kruskal–Wallis Analysis is applied to evaluate whether MEV(s) differ significantly across resolution outcomes or recovery segments. As a non-parametric alternative to one-way ANOVA, the methodology does not assume normality and is therefore well suited for distressed credit data, which typically contains heavy skewness, heterogeneity, and non-linear distributions.
+
+The analysis ranks MEV(s) observations across all groups and compares whether the median distributions differ between resolution types such as normal (0), repossessed (202), or written-off (205) accounts. The resulting H-statistic is adjusted for ties and transformed into an effect-size measure to quantify explanatory strength. Statistical significance is evaluated using the chi-square distribution. Within the IFRS 9 LGD framework, this analysis provides evidence that macroeconomic conditions materially influence resolution pathways, supporting the use of forward-looking segmentation and differentiated recovery assumptions across workout strategies.
+
+#### 2.4 Forward-looking Result
+
+The t-statistics are transformed into the composit score to find the significant relationship for the forward-looking model. For this repository, the `BROMO_MA9M` and `GDP_MA12M_LAG12M` are selected.
+
+```
+========================================
+MEV(s) Significant Score
+========================================
+BROMO_MA9M          : 92.15
+BROMO_MA6M          : 91.76
+BROMO_MA12M         : 91.37
+BROMO_MA6M_LAG3M    : 91.11
+BROMO_MA9M_LAG3M    : 90.93
+BROMO_MA3M          : 90.78
+BROMO_MA6M_LAG6M    : 90.66
+BROMO_MA12M_LAG3M   : 90.60
+BROMO_MA3M_LAG6M    : 90.58
+BROMO               : 90.56
+BROMO_LAG6M         : 90.52
+BROMO_MA9M_LAG6M    : 89.95
+BROMO_MA12M_LAG6M   : 89.91
+BROMO_MA3M_LAG3M    : 89.80
+BROMO_LN            : 89.78
+BROMO_LN_LAG6M      : 89.78
+BROMO_MA12M_LAG12M  : 89.78
+BROMO_MA9M_LAG12M   : 89.70
+BROMO_MA12M_LAG9M   : 89.62
+BROMO_LAG3M         : 89.54
+BROMO_MA6M_LAG9M    : 89.52
+BROMO_MA9M_LAG9M    : 89.50
+GDP_MA12M_LAG12M    : 89.48
+BROMO_MA6M_LAG12M   : 88.95
+MLR_MA12M           : 88.66
+BROMO_LN_LAG3M      : 88.64
+MLR_MA9M            : 88.50
+MLR_MA6M            : 88.05
+MLR_MA3M            : 87.85
+BROMO_MA3M_LAG12M   : 87.81
+```
+
+The model results are compared with/wothout MEV(s) effects from the based model.
+
+<p align="center">
+<img width="1920" height="640" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/691cadb0-90b3-4ec3-b271-cec76381a232" />
+</p>
+
+<p align="center">
+ <img width="1920" height="640" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/29df2d12-365a-407f-90f7-96479b5b35fe" />
+</p>
+
+<p align="center">
+<img width="1920" height="640" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/2f44367e-c89c-42ba-8aa5-c606469f9533" />
+</p>
+
+<p align="center">
+<img width="1920" height="640" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/3c0a1a71-275c-4572-a467-fbb51f5b2cda" />
+</p>
+
+The LGD computation processes are the same as unbias model but incorporated the MEV(s) effects and changed the output from the model.
+
+```
+======================================================================
+FWL LGD Model
+======================================================================
+Total default accounts        : 24,808
+    Resolved cases            : 23,481
+    Unsolved cases            : 1,327
+======================================================================
+Resolved portfolio LGD        : 57.84%
+    Resolution type 0         : 0.45%
+    Resolution type 202       : 55.68%
+    Resolution type 204       : 62.41%
+    Resolution type 205       : 90.48%
+======================================================================
+Unsolved portfolio LGD        : 65.13%
+    Resolution type 0         : 66.34%
+    Resolution type 202       : 28.91%
+    Resolution type 204       : 70.20%
+    Resolution type 205       : 66.79%
+======================================================================
+Unbias portfolio LGD          : 58.18%
+    Default status 100        Resolution type 0          : 12.90%
+    Default status 100        Resolution type 202        : 45.18%
+    Default status 100        Resolution type 204        : 62.77%
+    Default status 100        Resolution type 205        : 60.13%
+    Default status 202        Resolution type 202        : 57.84%
+    Default status 204        Resolution type 204        : 75.08%
+    Default status 205        Resolution type 205        : 98.52%
+```
 
 ### 3. Residual LGD
 <p align="center">
