@@ -125,7 +125,7 @@ The Monthly Recovery Panel converts account-level default observations into a mo
 </p>
 
 #### 1.1 Resolved Cases
-
+**Actual LGD Calculation for resolved accounts:** This first process computes **Actual LGD** for fully resolved default cases under the IFRS 9 Framework using a discounted cashflow recovery approach and deduct direct cost. The implementation follows a workout based LGD Methodology, where realized post default recoveries are discounted back to present value (PV) using the account level Effective Interest Rate (EIR). The LGD is finally calculated as the remaining loss relative to EAD. The LGD results of seperated resolved cases are shown below: 
 
 ```
 [INFO]: Actual LGD for resolved cases
@@ -137,22 +137,69 @@ Resolution type 205 - LGD: 90.48%
 ```
 
 #### 1.2 Unsolved Cases
+**Estimated LGD Calculation for unsolved accounts:** The unsolved workout LGD Framework decomposes the post default recovery process into multiple behavioral sub-models. Each model estimates a different dimension of the recovery lifecycle, allowing the framework to capture both the timing and severity of recoveries under IFRS 9 Requirements.
+
+**Time-to-Resolution Model:** A survival analysis using Weibull Accelerated Failure Time (AFT), this model estimates how long a defaulted account is expected to remain unresolved before reaching a final recovery outcome. The framework applies a Weibull AFT Model using both resolved and unresolved default accounts. Unsolved accounts are treated as right-censored observations, allowing the model to estimate expected remaining recovery duration even when the recovery process is still ongoing.
+
 <p align="center">
 <img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/4b5836e7-7641-46e8-b8d8-bb74224a5ad0" />
 </p>
+
+**Resolution Type Model:** A Multinomial Logistic Classification, this model estimates the probability of each recovery resolution pathway for unsolved accounts. Only resolved accounts are used during training because the final recovery outcome is observable.
 
 <p align="center">
 <img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/31fdaf67-1e83-4d06-8b59-49dec929a8ae" />
 </p>
 
+**Cashflow Receive Model:** A Logistic Hazard Model for Recovery Occurrence, this model estimates the probability that a recovery cashflow will occur at each month since default. The framework treats recovery timing as a monthly event process and applies a binary logistic classification model. 
+
 <p align="center">
 <img width="989" height="592" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/0a66fefe-a52f-4326-bfb1-ba4ab6a8d017" />
 </p>
+
+**Cashflow Amount Model:** A Recovery Severity Regression Model, this model estimates the expected recovery amount conditional on a recovery event occurring. The framework uses regression modeling separately by resolution type to capture different recovery severity patterns.
 
 <p align="center">
 <img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/d484e99b-5760-4120-83ca-5f2dcd7971ad" />
 </p>
 
+The final unsolved workout LGD estimate combines all model components together:
+1. Time-to-Resolution Model estimates recovery horizon
+2. Resolution Type Model estimates recovery pathway probabilities
+3. Cashflow Receipt Model estimates monthly recovery timing
+4. Cashflow Amount Model estimates recovery severity
+
+The final portfolio workout LGD is a combination of resolved and unsolved cases. The result can be segmented into default status and resolved status as shown below:
+
+```
+======================================================================
+Unbias LGD Model
+======================================================================
+Total default accounts        : 24,808
+    Resolved cases            : 23,481
+    Unsolved cases            : 1,327
+======================================================================
+Resolved portfolio LGD        : 57.84%
+    Resolution type 0         : 0.45%
+    Resolution type 202       : 55.68%
+    Resolution type 204       : 62.41%
+    Resolution type 205       : 90.48%
+======================================================================
+Unsolved portfolio LGD        : 40.52%
+    Resolution type 0         : 40.44%
+    Resolution type 202       : 29.96%
+    Resolution type 204       : 39.21%
+    Resolution type 205       : 45.75%
+======================================================================
+Unbias portfolio LGD          : 57.03%
+    Default status 100        Resolution type 0          : 18.51%
+    Default status 100        Resolution type 202        : 45.57%
+    Default status 100        Resolution type 204        : 61.27%
+    Default status 100        Resolution type 205        : 44.29%
+    Default status 202        Resolution type 202        : 57.84%
+    Default status 204        Resolution type 204        : 75.08%
+    Default status 205        Resolution type 205        : 98.52%
+```
 
 ### 2. Forward-looking LGD
 <p align="center">
