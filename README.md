@@ -323,6 +323,12 @@ Unbias portfolio LGD          : 58.18%
 </p>
 
 
+<p align="center">
+<img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/0032dd5d-b95d-414a-bc57-e6eaf10f4a77" />
+</p>
+
+
+
 ## License
 MIT · Built for learning purposes
 
