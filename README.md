@@ -71,7 +71,7 @@ lgd_advance_workout_model/
 |   |   ├── main_transaction_data.parquet          #Not tracked by git
 |   |   ├── cashflow_data.parquet          #Not tracked by git
 |   |   ├── mev_transformed.parquet          #Not tracked by git
-|   |   └── mev_sign_transformed.parquet          #Not tracked by git
+|   └── └── mev_sign_transformed.parquet          #Not tracked by git
 ├── requirements.txt
 └── README.md
 ```
@@ -321,26 +321,23 @@ Unbias portfolio LGD          : 58.18%
 <p align="center">
 <img width="1536" height="1024" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/a7a46938-cdca-4a97-b66c-6c1225ac9d81" />
 </p>
+For customers classified under Stage 3, partial recovery after default is expected. Consequently, the current outstanding balance differs from the balance at the time of default. In the LGD framework for Stage 1 and Stage 2 exposures, LGD is measured as the proportion of loss relative to the exposure at default (EAD). In contrast, for Stage 3 exposures, LGD is defined as the proportion of loss relative to the current outstanding balance.
 
+Therefore, incorporating observed post default recovery patterns to estimate the residual LGD. The residual LGD is computed as follows:
+
+$$
+\text{Residual LGD} = 1 - \frac{\text{Expected Recovery}}{\text{Remaining EAD}}
+$$
+
+where;
+- $\text{Remaining EAD}_t = 1 - \text{Recovery}_t$
+- $\text{Expected Recovery}_t = \text{Full Recovery} - \text{Recovery}_t$
+
+The result of residual LGD(s) by post default pathway are shown below: 
 
 <p align="center">
 <img width="989" height="590" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/0032dd5d-b95d-414a-bc57-e6eaf10f4a77" />
 </p>
 
-
-
 ## License
 MIT · Built for learning purposes
-
-
-
-
-
-
-
-
-
-
-
-
-
