@@ -37,7 +37,7 @@ The resulting LGD term structures can be directly used in Stage 1, Stage 2, and 
 ## Project Structure
 ```
 lgd_advance_workout_model/
-├── models/          #Trainned model and parameters (pkl.)
+├── models/                                  #Trainned model and parameters (pkl.)
 │   ├── unbias_aft_model.pkl
 │   ├── unbias_res_type_model.pkl
 │   ├── unbias_res_type_encoder.pkl
@@ -48,7 +48,7 @@ lgd_advance_workout_model/
 │   ├── fwl_res_type_model.pkl
 │   ├── fwl_res_type_encoder.pkl
 │   ├── fwl_cf_hazard_model.pkl
-│   └── fwl_cf_amount_model.pkl          #Not tracked by git
+│   └── fwl_cf_amount_model.pkl              #Not tracked by git
 ├── notebooks/
 │   ├── 01_data_preparation.ipynb
 │   ├── 02_unbias_lgd.ipynb
@@ -63,15 +63,15 @@ lgd_advance_workout_model/
 ├── data/          
 │   ├── processed/
 |   |   ├── default_account.parquet          #Not tracked by git
-|   |   ├── default_cashflow.parquet          #Not tracked by git
-|   |   ├── unbias_lgd.parquet          #Not tracked by git
-|   |   ├── fwl_lgd.parquet          #Not tracked by git
-|   |   └── residual_lgd.parquet          #Not tracked by git
+|   |   ├── default_cashflow.parquet         #Not tracked by git
+|   |   ├── unbias_lgd.parquet               #Not tracked by git
+|   |   ├── fwl_lgd.parquet                  #Not tracked by git
+|   |   └── residual_lgd.parquet             #Not tracked by git
 │   └── raw/
-|   |   ├── main_transaction_data.parquet          #Not tracked by git
-|   |   ├── cashflow_data.parquet          #Not tracked by git
+|   |   ├── main_transaction_data.parquet    #Not tracked by git
+|   |   ├── cashflow_data.parquet            #Not tracked by git
 |   |   ├── mev_transformed.parquet          #Not tracked by git
-|   └── └── mev_sign_transformed.parquet          #Not tracked by git
+|   └── └── mev_sign_transformed.parquet     #Not tracked by git
 ├── requirements.txt
 └── README.md
 ```
