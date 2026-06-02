@@ -6,6 +6,7 @@
 ![Scikit-learn](https://img.shields.io/badge/scikit--learn-ML-orange?logo=scikitlearn&style=for-the-badge)
 ![SciPy](https://img.shields.io/badge/SciPy-Scientific%20Computing-blue?logo=scipy&style=for-the-badge)
 ![statsmodels](https://img.shields.io/badge/statsmodels-Statistical%20Modeling-red?style=for-the-badge)
+![lifelines](https://img.shields.io/badge/lifelines-v0.27.0+-orange?style=for-the-badge&logo=pypi&logoColor=white)
 ![Matplotlib](https://img.shields.io/badge/Matplotlib-Visualization-blueviolet?style=for-the-badge)
 ![Seaborn](https://img.shields.io/badge/Seaborn-Statistical%20Plots-teal?style=for-the-badge)
 ![MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
