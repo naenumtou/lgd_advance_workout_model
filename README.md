@@ -6,9 +6,9 @@
 ![Scikit-learn](https://img.shields.io/badge/scikit--learn-ML-orange?logo=scikitlearn&style=for-the-badge)
 ![SciPy](https://img.shields.io/badge/SciPy-Scientific%20Computing-blue?logo=scipy&style=for-the-badge)
 ![statsmodels](https://img.shields.io/badge/statsmodels-Statistical%20Modeling-red?style=for-the-badge)
-![lifelines](https://img.shields.io/badge/lifelines-v0.27.0+-orange?style=for-the-badge&logo=pypi&logoColor=white)
-![Matplotlib](https://img.shields.io/badge/Matplotlib-Visualization-blueviolet?style=for-the-badge)
-![Seaborn](https://img.shields.io/badge/Seaborn-Statistical%20Plots-teal?style=for-the-badge)
+![lifelines](https://img.shields.io/badge/lifelines-Behaviour%20Modeling-orange?style=for-the-badge&logo=pypi&logoColor=white)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-Visualization-blueviolet?style=for-the-badge&logo=Plotly&logoColor=white)
+![Seaborn](https://img.shields.io/badge/Seaborn-Visualization-3775a9?style=for-the-badge&logo=plotly&logoColor=white)
 ![MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 This repository implements a **Workout-based Loss Given Default (LGD)** model aligned with IFRS 9 Expected Credit Loss (ECL) requirements. The framework estimates **unbias LGD, forward-looking LGD and Residual LGD** by modeling recovery behavior, cashflow timing, resolution pathways, and macroeconomic relationships throughout the post-default lifecycle. It is designed for Stage 1, Stage 2, and Stage 3 impairment calculations and supports transparent, auditable, and production ready credit risk modeling suitable for regulatory and financial reporting purposes.
