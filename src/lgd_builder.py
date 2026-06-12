@@ -218,7 +218,7 @@ def fit_survival_model(
 
     Notes:
         - time_to_resolution for non-resolved cases are until latest data period.
-        - If outplot = Ture --> output parameters will be 2.
+        - If outplot = True --> output parameters will be 2.
         - If outplot = False --> output parameters will be 1.
     """
     
@@ -351,7 +351,7 @@ def fit_cf_hazard_model(
         Figure      : Showing figure from matplotlib.
         
     Notes:
-        - If outplot = Ture --> output parameters will be 2.
+        - If outplot = True --> output parameters will be 2.
         - If outplot = False --> output parameters will be 1.
     """
     
@@ -441,7 +441,7 @@ def fit_cf_amount_models(
         
     Notes:
         - If number of sample in particular resolution type less than 30, the model will be fitted (Skip).
-        - If outplot = Ture --> output parameters will be 2.
+        - If outplot = True --> output parameters will be 2.
         - If outplot = False --> output parameters will be 1.
     """
 
