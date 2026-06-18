@@ -268,7 +268,7 @@ MLR_MA3M            : 87.85
 BROMO_MA3M_LAG12M   : 87.81
 ```
 
-The model results are compared with/wothout MEV(s) effects from the based model.
+The model results are compared with/without MEV(s) effects from the based model.
 
 <p align="center">
 <img width="1920" height="640" alt="การพัฒนาแบบจำลอง IFRS 9 LGD Model แบบ Workout period ตั้งแต่ต้นจนจบ" src="https://github.com/user-attachments/assets/691cadb0-90b3-4ec3-b271-cec76381a232" />
