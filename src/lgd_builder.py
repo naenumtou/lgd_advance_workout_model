@@ -279,7 +279,7 @@ def fit_resolution_type_model(
     Notes:
         - If there are additional base features, the values of thoes cannot missing.
         - The class_weight = "balanced" is for equal probability to predict non-resolved cases.
-        - If outplot = Ture --> output parameters will be 3.
+        - If outplot = True --> output parameters will be 3.
         - If outplot = False --> output parameters will be 2.
     """
 
